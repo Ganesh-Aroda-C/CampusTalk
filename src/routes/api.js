@@ -22,8 +22,10 @@ router.post('/auth/register', rateLimit(20, 60000), authCtrl.register);
 router.post('/auth/login', rateLimit(30, 60000), authCtrl.login);
 router.get('/auth/me', authenticateToken, authCtrl.getProfile);
 router.put('/auth/profile', authenticateToken, authCtrl.updateProfile);
+router.get('/notifications', authenticateToken, authCtrl.getNotifications);
 
-// Discovery routes (Colleges & Courses)
+// Discovery routes (Colleges, Courses & Global Search)
+router.get('/search', discoveryCtrl.globalSearch);
 router.get('/colleges', discoveryCtrl.getColleges);
 router.get('/colleges/:id', discoveryCtrl.getCollegeById);
 router.get('/courses', discoveryCtrl.getCourses);

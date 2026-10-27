@@ -300,3 +300,35 @@ test('8. DBMS Reports Execution and CSV Export', async () => {
   const csvText = await csvRes.text();
   assert.ok(csvText.includes('college_name'));
 });
+
+test('9. Global Search, Notifications & Filter Endpoints', async () => {
+  // Global search
+  const searchRes = await fetch(`${baseUrl}/api/search?q=PES`);
+  assert.equal(searchRes.status, 200);
+  const searchData = await searchRes.json();
+  assert.ok(Array.isArray(searchData.colleges));
+  assert.ok(Array.isArray(searchData.courses));
+  assert.ok(Array.isArray(searchData.posts));
+  assert.ok(Array.isArray(searchData.reviews));
+  assert.ok(searchData.colleges.some(c => c.college_name.includes('PES')));
+
+  // Notifications endpoint (authenticated)
+  const notifRes = await fetch(`${baseUrl}/api/notifications`, {
+    headers: { 'Authorization': `Bearer ${testToken}` }
+  });
+  assert.equal(notifRes.status, 200);
+  const notifs = await notifRes.json();
+  assert.ok(Array.isArray(notifs));
+
+  // Post author filter
+  const authorPostRes = await fetch(`${baseUrl}/api/posts?author_id=${testUser.user_id}`);
+  assert.equal(authorPostRes.status, 200);
+  const authorPosts = await authorPostRes.json();
+  assert.ok(Array.isArray(authorPosts.posts));
+
+  // Reviews user filter
+  const userRevRes = await fetch(`${baseUrl}/api/reviews?user_id=${testUser.user_id}`);
+  assert.equal(userRevRes.status, 200);
+  const userRevs = await userRevRes.json();
+  assert.ok(Array.isArray(userRevs.reviews));
+});

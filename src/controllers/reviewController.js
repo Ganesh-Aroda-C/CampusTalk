@@ -7,13 +7,17 @@ async function getReviews(req, res) {
   const reviewsColl = getReviewsCollection();
 
   try {
-    const { college, category, min_rating, page = 1, limit = 10 } = req.query;
+    const { college, category, min_rating, user_id, page = 1, limit = 10 } = req.query;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
     const skip = (pageNum - 1) * limitNum;
 
     const filter = {};
+
+    if (user_id) {
+      filter.user_id = Number(user_id);
+    }
 
     if (college && college.trim()) {
       filter.college_name = college.trim();

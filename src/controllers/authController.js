@@ -237,9 +237,50 @@ async function updateProfile(req, res) {
   }
 }
 
+async function getNotifications(req, res) {
+  const pool = getSqlPool();
+  const userId = req.user.user_id;
+
+  try {
+    const [comments] = await pool.query(
+      `SELECT 'comment' AS type, cm.comment_id AS id, cm.content, cm.created_at,
+              u.name AS actor_name, u.role AS actor_role,
+              p.post_id, p.title AS post_title
+       FROM Comments cm
+       JOIN Posts p ON p.post_id = cm.post_id
+       JOIN Users u ON u.user_id = cm.user_id
+       WHERE p.user_id = ? AND cm.user_id != ?
+       ORDER BY cm.created_at DESC
+       LIMIT 15`,
+      [userId, userId]
+    );
+
+    const [likes] = await pool.query(
+      `SELECT 'like' AS type, l.like_id AS id, '' AS content, l.created_at,
+              u.name AS actor_name, u.role AS actor_role,
+              p.post_id, p.title AS post_title
+       FROM Likes l
+       JOIN Posts p ON p.post_id = l.post_id
+       JOIN Users u ON u.user_id = l.user_id
+       WHERE p.user_id = ? AND l.user_id != ?
+       ORDER BY l.created_at DESC
+       LIMIT 15`,
+      [userId, userId]
+    );
+
+    const merged = [...comments, ...likes].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    return res.json(merged);
+  } catch (err) {
+    console.error('getNotifications error:', err);
+    return res.status(500).json({ error: 'Failed to retrieve notifications' });
+  }
+}
+
 module.exports = {
   register,
   login,
   getProfile,
-  updateProfile
+  updateProfile,
+  getNotifications
 };

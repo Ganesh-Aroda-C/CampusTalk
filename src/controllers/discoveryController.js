@@ -171,8 +171,89 @@ async function getCourses(req, res) {
   }
 }
 
+async function globalSearch(req, res) {
+  const q = req.query.q ? String(req.query.q).trim() : '';
+  if (!q) {
+    return res.json({ colleges: [], courses: [], posts: [], reviews: [] });
+  }
+
+  const pool = getSqlPool();
+  const reviewsColl = getReviewsCollection();
+
+  try {
+    const likePattern = `%${q}%`;
+
+    const [colleges] = await pool.query(
+      `SELECT cl.college_id, cl.college_name, cl.location, cl.state,
+              COUNT(DISTINCT p.post_id) AS post_count
+       FROM Colleges cl
+       LEFT JOIN Courses c ON c.college_id = cl.college_id
+       LEFT JOIN Posts p ON p.course_id = c.course_id
+       WHERE cl.college_name LIKE ? OR cl.location LIKE ? OR cl.state LIKE ?
+       GROUP BY cl.college_id
+       LIMIT 6`,
+      [likePattern, likePattern, likePattern]
+    );
+
+    const [courses] = await pool.query(
+      `SELECT c.course_id, c.course_name, c.degree_level, cl.college_id, cl.college_name
+       FROM Courses c
+       JOIN Colleges cl ON cl.college_id = c.college_id
+       WHERE c.course_name LIKE ?
+       LIMIT 6`,
+      [likePattern]
+    );
+
+    const [posts] = await pool.query(
+      `SELECT p.post_id, p.title, p.content, p.topic, p.created_at,
+              u.name AS author, cl.college_name, c.course_name,
+              COUNT(DISTINCT cm.comment_id) AS comment_count,
+              COUNT(DISTINCT l.like_id) AS like_count
+       FROM Posts p
+       JOIN Users u ON u.user_id = p.user_id
+       JOIN Courses c ON c.course_id = p.course_id
+       JOIN Colleges cl ON cl.college_id = c.college_id
+       LEFT JOIN Comments cm ON cm.post_id = p.post_id
+       LEFT JOIN Likes l ON l.post_id = p.post_id
+       WHERE p.title LIKE ? OR p.content LIKE ? OR p.topic LIKE ?
+       GROUP BY p.post_id
+       ORDER BY p.created_at DESC
+       LIMIT 6`,
+      [likePattern, likePattern, likePattern]
+    );
+
+    let reviews = [];
+    try {
+      reviews = await reviewsColl
+        .find({
+          $or: [
+            { college_name: { $regex: q, $options: 'i' } },
+            { course_name: { $regex: q, $options: 'i' } },
+            { review_text: { $regex: q, $options: 'i' } },
+            { category: { $regex: q, $options: 'i' } }
+          ]
+        })
+        .limit(6)
+        .toArray();
+    } catch (e) {
+      console.warn('MongoDB search warning:', e.message);
+    }
+
+    return res.json({
+      colleges,
+      courses,
+      posts,
+      reviews: reviews.map(r => ({ ...r, _id: r._id.toString() }))
+    });
+  } catch (err) {
+    console.error('globalSearch error:', err);
+    return res.status(500).json({ error: 'Search failed' });
+  }
+}
+
 module.exports = {
   getColleges,
   getCollegeById,
-  getCourses
+  getCourses,
+  globalSearch
 };

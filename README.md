@@ -1,6 +1,6 @@
 # CampusTalk — College Student Discussion & Experience Platform
 
-CampusTalk is a full-stack, polyglot persistence web platform designed for university DBMS laboratory evaluations and viva examinations. It connects prospective students researching colleges and degree programs with current students sharing first-hand experiences regarding academics, workload, hostels, placements, fees, and campus culture.
+CampusTalk is a full-stack, polyglot persistence web platform designed for college discussion and student information discovery, as well as university DBMS laboratory evaluations and viva examinations. It connects prospective students researching colleges and degree programs with current students sharing first-hand experiences regarding academics, workload, hostels, placements, fees, and campus culture.
 
 ---
 
@@ -14,10 +14,11 @@ CampusTalk organizes questions, answers, and reviews under a structured hierarch
 * **Current students** provide verified answers and detailed multi-attribute reviews.
 * **Prospective students** ask targeted questions, filter by college/course/topic, and compare student ratings.
 
-### Defensible Novelty & Core Contribution
+### Core Novelty & Value
 1. **Context-Aware College Discovery:** Multi-criteria exploration filtering simultaneously across College, Degree Level, Topic, and Academic Year.
-2. **Database-Backed Unanswered Questions Finder:** A dedicated filter that identifies community questions with 0 responses (`HAVING comment_count = 0`), helping current seniors proactively find and answer unanswered questions from prospective juniors.
+2. **Database-Backed Unanswered Questions Finder:** A dedicated filter that identifies community questions with 0 responses (`HAVING comment_count = 0`), helping current seniors proactively find and answer questions from prospective juniors.
 3. **Dual RDBMS + Document NoSQL Architecture:** Relational integrity for core entities (Users, Colleges, Courses, Posts, Comments, Likes, Follows) alongside MongoDB document collections for heterogeneous reviews.
+4. **Clean, Modern Instagram-Inspired Student UX:** Clutter-free visual hierarchy without decorative technical badges in the discussion feeds, paired with dedicated evaluation reports for university examiners.
 
 ---
 
@@ -26,8 +27,8 @@ CampusTalk organizes questions, answers, and reviews under a structured hierarch
 * **Backend:** Node.js (v18+ / v22+), Express 4.21
 * **Relational Database:** MySQL 8.0+ (InnoDB engine with foreign keys, cascaded deletions, and unique constraints)
 * **Document Database:** MongoDB 6.0+ / 7.0+ (WiredTiger engine with compound indexes and multi-stage aggregation pipelines)
-* **Authentication & Security:** JSON Web Tokens (JWT), bcryptjs password hashing (cost factor 10), in-memory rate limiting, ownership verification
-* **Frontend:** Semantic HTML5, Vanilla JavaScript (ES6+ modular architecture), CSS3 custom design system (light theme default, WCAG 2.2 AA compliant, accessible modal focus traps, screen-reader live regions)
+* **Authentication & Security:** JSON Web Tokens (JWT), bcryptjs password hashing (cost factor 10), in-memory rate limiting, server-side ownership verification
+* **Frontend:** Modern Instagram/Threads-inspired CSS3 design system, Semantic HTML5, Vanilla JavaScript (ES6+ modular architecture, zero heavy external UI dependencies), WCAG 2.2 AA accessibility (focus trapping, visible focus outlines, live regions)
 * **Testing:** Node.js native test runner (`node:test`, `node:assert/strict`)
 
 ---
@@ -58,10 +59,44 @@ For complete database schema and documentation, see:
 * [Relational Schema](docs/RELATIONAL_SCHEMA.md) &mdash; 1NF, 2NF, 3NF, BCNF proofs and constraint catalog.
 * [Database Design](docs/DATABASE_DESIGN.md) &mdash; Polyglot persistence, consistency strategy, and failure handling.
 * [Reports & SQL Queries](docs/REPORTS_AND_SQL.md) &mdash; Exact SQL joins, GROUP BY queries, MongoDB aggregation pipelines, and CSV export.
+* [Viva Examination Notes](docs/VIVA_NOTES.md) &mdash; High-yield answers for laboratory examiners.
 
 ---
 
-## 4. Key Features
+## 4. Intuitive User Interface & Layout Structure
+
+The interface follows clean UX principles inspired by modern social platforms (Instagram / Threads), removing confusing technical labels and badges from student content while answering three core questions on every view:
+1. **Where am I?** (Clear headings, active navigation indicators, breadcrumb badges).
+2. **What can I do here?** (Prominent primary action, visible filters, straightforward search).
+3. **What is the next obvious action?** (Clear call-to-actions, inline comment drawer, heart like toggle).
+
+### Layout Components
+
+```
++------------------+--------------------------------------+-------------------+
+|  LEFT SIDEBAR    |          CENTER CONTENT FEED         |    RIGHT RAIL     |
+|                  |                                      |                   |
+|  * CampusTalk    |  [ Search colleges, courses, Qs... ] |  Unanswered Qs    |
+|  * Home          |  [ Filter Pills: Academics, Fees...]|  (0 responses)    |
+|  * Explore       |                                      |                   |
+|  * Discussions   |  +--------------------------------+  |  Popular Colleges |
+|  * Reviews       |  | Post Card                      |  |  (quick jump)     |
+|  * Ask Question  |  | Author avatar, course context  |  |                   |
+|  * Notifications |  | Question title & clean preview |  |  Evaluator Link:  |
+|  * Profile       |  | Heart like & Comment drawer    |  |  [DBMS Reports]   |
+|  * Settings      |  +--------------------------------+  |                   |
++------------------+--------------------------------------+-------------------+
+```
+
+* **Desktop Navigation (Left Sidebar):** Consistent access to Home, Explore Colleges, Discussions, Reviews, Ask a Question (+), Notifications, Profile, and Settings.
+* **Mobile-First Experience:** Compact top bar with logo and notifications, paired with an ergonomic bottom navigation bar (Home, Explore, Ask [+], Reviews, Profile).
+* **Instant Global Search:** Real-time dropdown returning matched Colleges, Courses, Discussions, and Reviews as you type.
+* **Dedicated College Detail Page:** Structured tabs for Discussions, Student Reviews, Courses Offered, and Institutional Overview.
+* **Unobtrusive Evaluator Reports:** Access all 7 SQL & MongoDB analytical reports and CSV downloads via **Settings &rarr; "Launch DBMS Lab Reports"** or from the right rail footer.
+
+---
+
+## 5. Key Features
 
 ### A. Authentication & Profiles
 * Secure user registration and login with bcrypt password hashing (minimum 6 characters).
@@ -102,12 +137,12 @@ For complete database schema and documentation, see:
 ### F. Accessibility (WCAG 2.2 AA)
 * Accessible dialogs with focus trapping, restore-focus on close, and `Escape` key listeners.
 * Screen-reader friendly live status notifications (`role="status"`, `aria-live="polite"`).
-* High-contrast styling with visible focus outlines (`outline: 2px solid #4338ca`).
+* High-contrast styling with visible focus outlines (`outline: 2px solid #4f46e5`).
 * Responsive layouts from mobile screens (320px) up to ultra-wide displays.
 
 ---
 
-## 5. Local Setup & Execution (Windows / VS Code)
+## 6. Local Setup & Execution (Windows / VS Code)
 
 ### Prerequisites
 * **Node.js:** v18.0.0 or newer (tested on Node v22.19.0)
@@ -163,7 +198,7 @@ The server will start at: **http://localhost:5000**
 
 ---
 
-## 6. Pre-Configured Demo Accounts for Evaluation
+## 7. Pre-Configured Demo Accounts for Evaluation
 
 All seeded demonstration accounts use the password: `password123`
 
@@ -180,7 +215,7 @@ All seeded demonstration accounts use the password: `password123`
 
 ---
 
-## 7. Running Automated Verification Tests
+## 8. Running Automated Verification Tests
 
 CampusTalk includes an end-to-end integration test suite verifying health checks, authentication, authorization, CRUD operations, database constraints, MongoDB aggregations, and report exports.
 
@@ -191,16 +226,16 @@ npm test
 
 Expected output:
 ```
-# tests 8
+# tests 9
 # suites 0
-# pass 8
+# pass 9
 # fail 0
-# duration_ms 1280
+# duration_ms 1350
 ```
 
 ---
 
-## 8. Common Troubleshooting
+## 9. Common Troubleshooting
 
 | Issue | Cause | Solution |
 |---|---|---|
@@ -211,7 +246,7 @@ Expected output:
 
 ---
 
-## 9. Academic Limitations & Future Enhancements
+## 10. Academic Limitations & Future Enhancements
 
 * **Email Domain Verification:** Currently, roles are self-declared or administrative. Future versions can require `@college.edu` or institutional email verification for current students.
 * **Full-Text Search Engine:** Current search uses parameterized SQL `LIKE` and compound indexes. Production scaling could integrate MySQL Full-Text Search (MATCH...AGAINST) or Elasticsearch.

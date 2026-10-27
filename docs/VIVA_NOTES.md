@@ -1,48 +1,67 @@
-# CampusTalk — quick DBMS viva notes
+# CampusTalk — Comprehensive DBMS Viva Preparation Notes
 
-## Project explanation (30 seconds)
-CampusTalk connects prospective students with current students through searchable college-specific discussions and student experience reviews. MySQL stores entities with clear relationships, such as users, colleges, courses, posts and comments. MongoDB stores flexible experience-review documents, whose categories and optional fields may differ. Express provides API endpoints, and the UI lets users create and browse content. SQL aggregate queries generate reports by college and topic.
+## Project Explanation (30 Seconds Pitch)
+CampusTalk is a full-stack, polyglot persistence discussion and student-review platform designed to eliminate information asymmetry for college applicants. Prospective students research colleges and courses by reading authentic experiences shared by verified current students. We use **MySQL 8.0** for relational domain entities (Users, Colleges, Courses, Posts, Comments, Likes, and Follows) with strict referential integrity and ACID transactions, paired with **MongoDB** for flexible, category-specific student experience reviews and aggregation pipelines. An Express REST API serves a responsive, Instagram/Threads-inspired student UI and provides 7 live, database-backed analytical reports for DBMS evaluation.
 
-## Likely viva questions
+---
 
-**1. Why use an RDBMS?**
-Users, courses, posts and comments have structured relationships. MySQL supports primary/foreign keys, joins, constraints and transactions.
+## High-Yield Viva Questions & Answers
 
-**2. Why use MongoDB?**
-Student reviews can contain different fields by category. Document storage accommodates optional or category-specific attributes without adding many nullable columns to a relational table.
+### 1. Why did you choose a Polyglot Persistence Architecture (MySQL + MongoDB)?
+- **MySQL 8.0 (Relational Store):** Ideal for core application entities with structured relationships, foreign keys, cascade rules, and transactional integrity (e.g. like toggles, user accounts, post/comment threads).
+- **MongoDB (Document Store):** Ideal for student experience reviews. Review attributes vary widely by category (e.g., *Hostels* have mess/curfew details; *Placements* have salary packages/internships; *Academics* have assignment workloads). Storing this in SQL would cause sparse tables filled with `NULL`s or require an anti-pattern like EAV (Entity-Attribute-Value).
 
-**3. What is a primary key?**
-A column (or set of columns) that uniquely identifies each row and cannot be NULL.
+### 2. What normal form does your relational schema achieve?
+- The schema is normalized up to **Boyce-Codd Normal Form (BCNF)** / **3rd Normal Form (3NF)**:
+  - **1NF:** All attributes are atomic; no repeating groups.
+  - **2NF:** Every non-key attribute is fully functionally dependent on the entire primary key (no partial dependencies).
+  - **3NF:** No transitive functional dependencies (e.g., `college_id` is not repeated on `posts`; posts reference `course_id`, which references `college_id`).
+  - **BCNF:** For every non-trivial functional dependency $X \rightarrow Y$, $X$ is a superkey.
 
-**4. What is a foreign key?**
-A constraint that enforces a valid relationship with a referenced table's primary/unique key.
+### 3. How do you prevent SQL injection?
+- All database queries use **parameterized prepared statements** via `mysql2/promise` (e.g. `pool.execute('SELECT ... WHERE user_id = ?', [userId])`). User inputs are never concatenated directly into raw SQL query strings.
 
-**5. Why have a separate Courses table?**
-A college may offer many courses. Keeping courses separate reduces repeated college data and allows posts to refer to a course consistently.
+### 4. What is a primary key and a foreign key in your schema?
+- **Primary Key:** A unique, non-null identifier for a row (e.g., `user_id` in `Users`, `post_id` in `Posts`).
+- **Foreign Key:** An attribute referencing the primary key of another table, enforcing referential integrity (e.g., `Posts.course_id` references `Courses.course_id` with `ON DELETE CASCADE`).
 
-**6. What is normalization?**
-Organizing relational data to reduce unnecessary duplication and update anomalies. This schema separates users, colleges, courses, posts and comments into related tables.
+### 5. Why use a `LEFT JOIN` instead of an `INNER JOIN` in college activity reports?
+- An `INNER JOIN` would exclude colleges that do not yet have any posts or reviews.
+- A `LEFT JOIN` preserves all colleges from the parent table, allowing our analytics query to display `0` posts for new or quieter institutions.
 
-**7. What is a JOIN?**
-It combines related rows across tables using a join condition. The posts report joins Posts → Courses → Colleges to show which college a post belongs to.
+### 6. Why use `COUNT(DISTINCT ...)` in aggregate queries?
+- When joining `Posts` to both `Comments` and `Likes` simultaneously, a Cartesian product occurs ($2 \text{ comments} \times 3 \text{ likes} = 6 \text{ rows}$). `COUNT(DISTINCT c.comment_id)` and `COUNT(DISTINCT l.like_id)` prevent inflated, duplicate counts.
 
-**8. Why LEFT JOIN in college reports?**
-It retains colleges even when they have no matching course/post rows, allowing a count of zero to appear.
+### 7. How does the Unanswered Questions feature work in SQL?
+- It uses a `GROUP BY` with a `HAVING` clause:
+  ```sql
+  SELECT p.post_id, p.title, COUNT(c.comment_id) AS comment_count
+  FROM Posts p
+  LEFT JOIN Comments c ON p.post_id = c.post_id
+  GROUP BY p.post_id
+  HAVING comment_count = 0;
+  ```
+  This surfaces questions with zero answers so current college seniors can help incoming students.
 
-**9. What does GROUP BY do?**
-It groups rows by selected columns so aggregate functions such as COUNT can calculate a value per college or topic.
+### 8. How do you prevent a user from liking a post multiple times?
+- We enforce a composite **UNIQUE constraint** at the database level: `UNIQUE KEY uq_likes_post_user (post_id, user_id)`.
+- If an insert violates this constraint, our atomic controller catches the duplicate or toggles the like off (`DELETE`).
 
-**10. Why COUNT(DISTINCT ...) in the posts API?**
-Joining both comments and likes can multiply rows (for example, 2 comments × 3 likes = 6 joined rows). DISTINCT prevents inflated counts.
+### 9. How is security and authentication handled?
+- Passwords are encrypted using **bcrypt** (cost factor 10) before storage. Plaintext passwords or password hashes are never returned in API responses.
+- Stateless authentication uses cryptographically signed **JSON Web Tokens (JWT)**.
+- Server-side authorization checks verify ownership before allowing any `PUT` or `DELETE` on posts, comments, or reviews.
 
-**11. What is a MongoDB collection/document?**
-A collection groups documents; each document is a BSON record with fields. Documents in a collection need not all have identical fields.
+### 10. How does MongoDB aggregation work in your project?
+- We use multi-stage aggregation pipelines (`$match`, `$group`, `$sort`, `$project`) to compute real-time metrics:
+  - Average rating and review count per college.
+  - Review category breakdowns (e.g., Academics vs Placements vs Hostels).
 
-**12. How are SQL and NoSQL used together?**
-The Express server connects to both. Post/comment/report routes query MySQL; review routes insert and read MongoDB documents.
+### 11. What is the indexing strategy?
+- **MySQL:** Indexes on frequently filtered/joined foreign keys (`idx_posts_course`, `idx_posts_user`, `idx_posts_created_at`, `idx_courses_college`, and composite index on `Likes(post_id, user_id)`).
+- **MongoDB:** Compound indexes on `{ college_id: 1, category: 1 }` and `{ user_id: 1, created_at: -1 }`.
 
-**13. What is the novelty?**
-The planned differentiator is a college experience comparison view based on student-submitted category ratings and counts. In this MVP, reviews are implemented; category-wise comparison aggregation is a next enhancement. Be honest about what is implemented versus planned.
-
-**14. What are limitations?**
-Demo IDs are fixed; there is no real authentication, moderation or production-grade access control. Review ratings are not yet aggregated into a comparison dashboard.
+### 12. What are the defensible academic limitations?
+1. **Self-declared roles:** In this lab prototype, students select their role upon registration. A production deployment would require `.edu` institutional email domain verification.
+2. **Search scaling:** Search currently uses parameterized SQL `LIKE` and compound indexes. High-throughput enterprise scaling would employ a dedicated inverted index engine like Elasticsearch or Meilisearch.
+3. **Dual-store consistency:** Coordinated via application logic (eventual consistency) rather than a heavy distributed 2-Phase Commit (2PC) to maintain sub-10ms response times.

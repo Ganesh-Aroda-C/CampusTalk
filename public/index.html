@@ -2,516 +2,519 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>CampusTalk — Student Voices, Clearer College Choices</title>
-  <meta name="description" content="A comprehensive college discussion and student information platform powered by MySQL RDBMS and MongoDB NoSQL for university DBMS evaluation.">
+  <meta name="description" content="Clean, modern college discussion and student information platform.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
   <!-- Accessible Skip Link -->
-  <a href="#main-content" style="position: absolute; left: -9999px; top: 0; padding: 8px; background: #000; color: #fff; z-index: 1000;" onfocus="this.style.left='0';">
+  <a href="#mainContent" style="position:absolute; left:-9999px; top:0; padding:8px 16px; background:#000; color:#fff; z-index:1000;" onfocus="this.style.left='0';">
     Skip to main content
   </a>
 
-  <!-- App Header -->
-  <header class="app-header" role="banner">
-    <div class="header-inner">
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <a href="#" class="brand" onclick="window.CampusTalk.switchView('discussions'); return false;" aria-label="CampusTalk Home">
-          <div class="brand-icon" aria-hidden="true">CT</div>
-          <div>
-            <span class="brand-title">Campus<span>Talk</span></span>
-            <span class="brand-tag">DBMS Lab</span>
-          </div>
-        </a>
-
-        <nav aria-label="Main Navigation">
-          <ul class="nav-links">
-            <li><button class="nav-btn active" data-view="discussions">💬 Discussions</button></li>
-            <li><button class="nav-btn" data-view="colleges">🎓 Colleges</button></li>
-            <li><button class="nav-btn" data-view="reviews">⭐ Reviews <span class="badge badge-db">MongoDB</span></button></li>
-            <li><button class="nav-btn" data-view="reports">📊 DBMS Reports <span class="badge badge-db">SQL</span></button></li>
-          </ul>
-        </nav>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 14px;">
-        <div id="connStatus" class="status-pill" title="Real-time Database Connection Status">
-          <span class="dot"></span> Checking DBs…
-        </div>
-        <div id="userControls" class="user-controls"></div>
-      </div>
+  <!-- Mobile Top Bar -->
+  <header class="mobile-top-bar" role="banner">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="brand-logo-badge" style="width:30px; height:30px; font-size:14px;">CT</div>
+      <span class="brand-wordmark" style="font-size:18px;">Campus<span>Talk</span></span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <button class="btn btn-secondary btn-sm" id="btnMobileSearchTrigger" aria-label="Open search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="btn btn-secondary btn-sm" id="btnMobileNotificationsTrigger" aria-label="Notifications">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
     </div>
   </header>
 
-  <!-- Main Content Area -->
-  <main id="main-content" class="container" role="main">
+  <div class="app-shell">
 
-    <!-- Hero Banner -->
-    <section class="hero-card" aria-labelledby="hero-heading">
-      <h1 id="hero-heading">Make your college decision with confidence.</h1>
-      <p>
-        Reliable, first-hand academic and campus experiences shared by current students.
-        Explore college-specific discussions, course workloads, hostels, and verified student reviews before you enroll.
-      </p>
-      <div class="hero-stats">
-        <button class="btn btn-primary" id="heroBtnExplore">🎓 Explore Colleges</button>
-        <button class="btn btn-secondary" id="heroBtnDiscussions">💬 Browse Questions</button>
-        <button class="btn btn-subtle" id="heroBtnReviews">⭐ Student Reviews (NoSQL)</button>
-        <div class="hero-pill">⚡ Powered by MySQL Relational &amp; MongoDB Document Stores</div>
+    <!-- DESKTOP LEFT SIDEBAR -->
+    <aside class="app-sidebar" role="navigation" aria-label="Main Navigation">
+      <a href="#" class="sidebar-brand" id="brandHomeLink" aria-label="CampusTalk Home">
+        <div class="brand-logo-badge" aria-hidden="true">CT</div>
+        <div class="brand-wordmark">Campus<span>Talk</span></div>
+      </a>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="home" aria-label="Home feed">
+          <span class="nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </span>
+          <span class="nav-label">Home</span>
+        </button>
+
+        <button class="nav-item" data-view="explore" aria-label="Explore colleges and courses">
+          <span class="nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          </span>
+          <span class="nav-label">Explore Colleges</span>
+        </button>
+
+        <button class="nav-item" data-view="discussions" aria-label="All discussions">
+          <span class="nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </span>
+          <span class="nav-label">Discussions</span>
+        </button>
+
+        <button class="nav-item" data-view="reviews" aria-label="Student reviews">
+          <span class="nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </span>
+          <span class="nav-label">Reviews</span>
+        </button>
+
+        <button class="nav-item" data-view="notifications" aria-label="Notifications">
+          <span class="nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </span>
+          <span class="nav-label">Notifications</span>
+          <span class="nav-badge-dot" id="sidebarNotifDot" hidden></span>
+        </button>
+
+        <button class="nav-item" data-view="profile" aria-label="Your profile">
+          <span class="nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <span class="nav-label">Profile</span>
+        </button>
+
+        <button class="nav-item" data-view="settings" aria-label="Settings and options">
+          <span class="nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span class="nav-label">Settings</span>
+        </button>
+
+        <button class="btn-sidebar-ask" id="btnSidebarAsk" aria-label="Ask a question">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Ask a Question</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar User Section -->
+      <div class="sidebar-user" id="sidebarUserArea">
+        <button class="btn btn-primary" id="btnSidebarSignIn" style="width: 100%;">Sign In</button>
       </div>
-    </section>
+    </aside>
 
-    <!-- VIEW 1: DISCUSSIONS (DEFAULT) -->
-    <div id="view-discussions" class="view-section">
-      <div class="layout-grid">
-        <!-- Main Feed Column -->
-        <div>
-          <!-- Filter Toolbar -->
-          <div class="panel" style="margin-bottom: 16px;">
-            <div class="toolbar">
-              <div class="search-box">
-                <span class="search-icon" aria-hidden="true">🔍</span>
-                <input type="search" id="filterSearch" class="search-input" placeholder="Search questions, topics, colleges…" aria-label="Search discussions">
-              </div>
+    <!-- CENTER MAIN CONTENT -->
+    <main class="app-main" id="mainContent" role="main">
 
-              <select id="filterCollege" class="select-input" aria-label="Filter by college">
-                <option value="">All Colleges</option>
-              </select>
+      <!-- ==========================================
+           VIEW 1: HOME FEED
+           ========================================== -->
+      <section id="view-home" class="main-column view-container" aria-labelledby="homeFeedTitle">
+        <!-- Unified Feed Search Bar -->
+        <div class="feed-search-bar">
+          <svg class="search-icon-inside" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="homeSearchInput" class="feed-search-input" placeholder="Search colleges, courses, or questions…" autocomplete="off" aria-label="Search colleges, courses, or questions">
+          <button type="button" id="homeSearchClear" class="search-clear-btn" hidden aria-label="Clear search">&times;</button>
 
-              <select id="filterTopic" class="select-input" aria-label="Filter by topic">
-                <option value="">All Topics</option>
-              </select>
-
-              <select id="filterSort" class="select-input" aria-label="Sort discussions">
-                <option value="recent">Sort: Most Recent</option>
-                <option value="popular">Sort: Most Popular</option>
-                <option value="unanswered">Sort: Unanswered (0 Replies)</option>
-                <option value="likes">Sort: Most Liked</option>
-              </select>
-            </div>
-
-            <!-- Quick Filter Chips -->
-            <div class="chip-row" role="group" aria-label="Filter by topic chips">
-              <button class="chip active" data-topic="">All</button>
-              <button class="chip" data-special="popular">🔥 Popular</button>
-              <button class="chip" data-special="unanswered">❓ Unanswered Questions</button>
-              <button class="chip" data-topic="Academics">Academics</button>
-              <button class="chip" data-topic="Placements">Placements</button>
-              <button class="chip" data-topic="Hostels">Hostels</button>
-              <button class="chip" data-topic="Campus Life">Campus Life</button>
-              <button class="chip" data-topic="Clubs">Clubs</button>
-            </div>
-          </div>
-
-          <!-- Discussions List -->
-          <div id="postsList" role="region" aria-label="Discussion feed" aria-live="polite">
-            <p style="color: var(--ink-muted);">Loading discussions…</p>
-          </div>
-
-          <!-- Pagination -->
-          <div id="postsPagination"></div>
+          <!-- Auto-Suggest Results Dropdown -->
+          <div id="homeSearchDropdown" class="search-results-dropdown" role="listbox"></div>
         </div>
 
-        <!-- Contextual Sidebar -->
-        <aside aria-label="Community highlights">
-          <!-- Novelty Contribution Box -->
-          <div class="panel">
-            <h2 class="panel-title" style="font-size: 15px;">
-              💡 Defensible Project Novelty
-            </h2>
-            <p style="font-size: 13px; color: var(--ink-secondary); margin: 8px 0;">
-              <strong>Context-Aware Discovery &amp; Unanswered Questions:</strong> CampusTalk bridges prospective students with verified seniors.
-            </p>
-            <div style="background: var(--bg-subtle); padding: 10px; border-radius: var(--radius-sm); font-size: 12.5px; margin-top: 8px;">
-              Use the <span class="badge badge-prospective">❓ Unanswered</span> filter to find questions that current seniors haven't replied to yet.
-            </div>
+        <!-- Category Filter Pills (Instagram-style Stories bar) -->
+        <div class="filter-pills-row" role="tablist" aria-label="Filter discussion topics">
+          <button class="filter-pill active" data-topic="">All Topics</button>
+          <button class="filter-pill" data-special="unanswered">❓ Unanswered</button>
+          <button class="filter-pill" data-topic="Academics">Academics</button>
+          <button class="filter-pill" data-topic="Placements">Placements</button>
+          <button class="filter-pill" data-topic="Hostels">Hostels</button>
+          <button class="filter-pill" data-topic="Campus Life">Campus Life</button>
+          <button class="filter-pill" data-topic="Clubs">Clubs</button>
+          <button class="filter-pill" data-topic="Fees & ROI">Fees &amp; ROI</button>
+        </div>
+
+        <!-- Sort Toggle & Active Filter Status Bar -->
+        <div class="feed-controls-bar">
+          <div class="sort-toggle-group" role="group" aria-label="Sort feed by">
+            <button class="sort-toggle-btn active" id="sortBtnLatest" data-sort="recent">Latest</button>
+            <button class="sort-toggle-btn" id="sortBtnPopular" data-sort="popular">Most Popular</button>
           </div>
 
-          <!-- Quick Demo Switcher Panel -->
-          <div class="panel">
-            <h2 class="panel-title" style="font-size: 15px;">
-              👤 Evaluator Demo Accounts
-            </h2>
-            <p style="font-size: 12.5px; color: var(--ink-muted); margin-bottom: 8px;">
-              Click below to instantly populate sign-in credentials for testing different roles:
-            </p>
-            <div class="demo-accounts">
-              <button class="demo-pill" data-email="aarav.demo@campustalk.local" data-password="password123">Aarav (Student - PES)</button>
-              <button class="demo-pill" data-email="meera.demo@campustalk.local" data-password="password123">Meera (Student - RVCE)</button>
-              <button class="demo-pill" data-email="rohan.demo@campustalk.local" data-password="password123">Rohan (Student - PICT)</button>
-              <button class="demo-pill" data-email="sneha.demo@campustalk.local" data-password="password123">Sneha (Prospective)</button>
-              <button class="demo-pill" data-email="admin.demo@campustalk.local" data-password="password123">Admin</button>
-            </div>
-            <div style="font-size: 11px; color: var(--ink-muted); margin-top: 8px;">
-              Standard test password for all seeded accounts: <code>password123</code>
-            </div>
-          </div>
+          <div id="activeFilterBadgeContainer"></div>
+        </div>
 
-          <!-- Architecture Summary -->
-          <div class="panel">
-            <h2 class="panel-title" style="font-size: 15px;">
-              🗄️ Database Architecture
-            </h2>
-            <ul style="font-size: 13px; color: var(--ink-secondary); padding-left: 18px; line-height: 1.6; margin-top: 8px;">
-              <li><strong>MySQL:</strong> 8 normalized tables with foreign keys, cascaded deletions, and unique constraints.</li>
-              <li><strong>MongoDB:</strong> Flexible student experience review documents with category-specific attributes.</li>
-              <li><strong>Reports:</strong> Live SQL GROUP BY queries and MongoDB aggregation pipelines.</li>
-            </ul>
+        <!-- Feed Posts Stream -->
+        <div id="homeFeedStream" role="feed" aria-busy="true">
+          <div class="post-card" style="padding: 24px; text-align: center; color: var(--ink-muted);">
+            Loading discussions…
           </div>
-        </aside>
-      </div>
-    </div>
+        </div>
 
-    <!-- VIEW 2: COLLEGES DIRECTORY -->
-    <div id="view-colleges" class="view-section hidden">
-      <div class="panel">
-        <div class="panel-header">
+        <!-- Pagination -->
+        <div id="homePagination"></div>
+      </section>
+
+      <!-- ==========================================
+           VIEW 2: EXPLORE COLLEGES
+           ========================================== -->
+      <section id="view-explore" class="main-column wide view-container" hidden aria-labelledby="exploreCollegesTitle">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h2 class="panel-title">Colleges &amp; Courses Discovery</h2>
-            <p style="font-size: 13.5px; color: var(--ink-muted); margin-top: 4px;">
-              Explore participating institutions, available degree programs, discussion volumes, and verified student ratings.
-            </p>
+            <h1 id="exploreCollegesTitle" class="page-title">Explore Colleges</h1>
+            <p class="page-subtitle">Discover degree courses, student conversations, and verified reviews.</p>
           </div>
         </div>
 
-        <div id="collegesGrid" class="directory-grid">
-          <p style="color: var(--ink-muted);">Loading colleges directory…</p>
+        <!-- Explore Search Bar -->
+        <div class="feed-search-bar" style="margin-bottom: 12px;">
+          <svg class="search-icon-inside" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="exploreSearchInput" class="feed-search-input" placeholder="Search colleges by name, city, or state…" aria-label="Search colleges">
         </div>
-      </div>
-    </div>
 
-    <!-- VIEW 3: STUDENT REVIEWS (MONGODB) -->
-    <div id="view-reviews" class="view-section hidden">
-      <div class="panel">
-        <div class="panel-header">
+        <!-- City filter chips -->
+        <div class="filter-pills-row">
+          <button class="filter-pill active" data-city="">All Cities</button>
+          <button class="filter-pill" data-city="Bengaluru">Bengaluru</button>
+          <button class="filter-pill" data-city="Pune">Pune</button>
+          <button class="filter-pill" data-city="Chennai">Chennai</button>
+        </div>
+
+        <!-- Colleges Grid -->
+        <div id="exploreCollegesGrid" class="colleges-directory-grid">
+          <p style="color: var(--ink-muted);">Loading colleges…</p>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           VIEW 3: COLLEGE DETAIL PAGE
+           ========================================== -->
+      <section id="view-college-detail" class="main-column wide view-container" hidden aria-labelledby="collegeDetailName">
+        <button class="college-detail-back" id="btnBackToExplore" aria-label="Return to colleges list">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Back to Colleges
+        </button>
+
+        <div class="college-detail-hero" id="collegeDetailHero">
+          <h1 id="collegeDetailName" class="college-detail-title">College Name</h1>
+          <p id="collegeDetailLocation" style="color: var(--ink-muted); font-size: 14px; margin-bottom: 12px;">Location</p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary btn-sm" id="btnDetailAskQuestion">+ Ask About This College</button>
+            <button class="btn btn-secondary btn-sm" id="btnDetailWriteReview">Write a Review</button>
+          </div>
+        </div>
+
+        <!-- Tabs: Discussions / Reviews / Courses / Overview -->
+        <div class="college-detail-tabs" role="tablist">
+          <button class="detail-tab-btn active" data-subtab="discussions" role="tab">Discussions</button>
+          <button class="detail-tab-btn" data-subtab="reviews" role="tab">Reviews</button>
+          <button class="detail-tab-btn" data-subtab="courses" role="tab">Courses Offered</button>
+          <button class="detail-tab-btn" data-subtab="overview" role="tab">Overview</button>
+        </div>
+
+        <div id="collegeDetailSubtabContent"></div>
+      </section>
+
+      <!-- ==========================================
+           VIEW 4: ALL DISCUSSIONS
+           ========================================== -->
+      <section id="view-discussions" class="main-column view-container" hidden aria-labelledby="allDiscussionsTitle">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h2 class="panel-title">
-              Student Experience Reviews
-              <span class="badge badge-db">MongoDB Document Store</span>
-            </h2>
-            <p style="font-size: 13.5px; color: var(--ink-muted); margin-top: 4px;">
-              Rich, unstructured student feedback stored as flexible BSON documents with category-specific pros, cons, and junior advice.
-            </p>
+            <h1 id="allDiscussionsTitle" class="page-title">Discussions</h1>
+            <p class="page-subtitle">Search questions and advice from college students across India.</p>
           </div>
-          <button class="btn btn-primary" id="btnOpenNewReview">+ Write a Review</button>
+          <button class="btn btn-primary btn-sm" id="btnOpenAskFromDiscussions">+ Ask a Question</button>
         </div>
 
-        <!-- Summary Statistics from MongoDB Aggregation -->
-        <div id="reviewSummaryStats"></div>
+        <div class="feed-search-bar">
+          <svg class="search-icon-inside" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="discSearchInput" class="feed-search-input" placeholder="Search by question title or keyword…" aria-label="Search discussions">
+        </div>
 
-        <!-- Filter bar for reviews -->
-        <div class="toolbar" style="margin-bottom: 20px;">
-          <select id="revFilterCategory" class="select-input" aria-label="Filter reviews by category">
-            <option value="">All Categories</option>
-            <option>Academics</option>
-            <option>Placements</option>
-            <option>Hostels</option>
-            <option>Campus Life</option>
-            <option>Clubs</option>
-            <option>Fees &amp; ROI</option>
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <select id="discCollegeSelect" class="form-select" style="flex: 1; min-width: 160px;" aria-label="Filter discussions by college">
+            <option value="">All Colleges</option>
           </select>
-
-          <select id="revFilterRating" class="select-input" aria-label="Filter reviews by minimum rating">
-            <option value="">All Ratings</option>
-            <option value="5">★★★★★ 5 Stars Only</option>
-            <option value="4">★★★★☆ 4 Stars &amp; Above</option>
-            <option value="3">★★★☆☆ 3 Stars &amp; Above</option>
+          <select id="discTopicSelect" class="form-select" style="flex: 1; min-width: 140px;" aria-label="Filter discussions by topic">
+            <option value="">All Topics</option>
+          </select>
+          <select id="discSortSelect" class="form-select" style="flex: 1; min-width: 140px;" aria-label="Sort discussions">
+            <option value="recent">Sort: Latest</option>
+            <option value="popular">Sort: Most Popular</option>
+            <option value="unanswered">Sort: Unanswered (0 Replies)</option>
           </select>
         </div>
 
-        <div id="reviewsList">
-          <p style="color: var(--ink-muted);">Loading student reviews…</p>
+        <div id="discussionsFeedStream">
+          <p style="color: var(--ink-muted);">Loading discussions…</p>
         </div>
-      </div>
-    </div>
 
-    <!-- VIEW 4: DBMS REPORTS DASHBOARD -->
-    <div id="view-reports" class="view-section hidden">
-      <div class="panel">
-        <div class="panel-header">
+        <div id="discussionsPagination"></div>
+      </section>
+
+      <!-- ==========================================
+           VIEW 5: STUDENT REVIEWS
+           ========================================== -->
+      <section id="view-reviews" class="main-column view-container" hidden aria-labelledby="studentReviewsTitle">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h2 class="panel-title">
-              DBMS Project Reports &amp; Live Analytics
-              <span class="badge badge-db">SQL + NoSQL Aggregations</span>
-            </h2>
-            <p style="font-size: 13.5px; color: var(--ink-muted); margin-top: 4px;">
-              Faculty evaluation reports computed directly from database queries. Real aggregate calculations without hardcoded values.
-            </p>
+            <h1 id="studentReviewsTitle" class="page-title">Student Reviews</h1>
+            <p class="page-subtitle">Honest, first-hand experiences on coursework, faculty, hostels, and placements.</p>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="window.CampusTalk.switchView('reports')">🔄 Refresh All Data</button>
+          <button class="btn btn-primary btn-sm" id="btnOpenWriteReview">+ Write a Review</button>
         </div>
 
-        <!-- Report 1 -->
-        <section class="report-section" aria-labelledby="rep1-title">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="rep1-title" style="font-size: 16px; font-weight: 700;">
-              1. College-wise Discussion Activity (MySQL LEFT JOIN &amp; GROUP BY)
-            </h3>
-            <button class="btn btn-secondary btn-sm btn-export-csv" data-report="college-posts">Export CSV</button>
-          </div>
-          <p style="font-size: 12.5px; color: var(--ink-muted); margin-bottom: 10px;">
-            Query joins <code>Colleges &rarr; Courses &rarr; Posts &rarr; Comments/Likes</code> with <code>COUNT(DISTINCT)</code> to prevent cartesian inflation.
-          </p>
-          <div id="rep1Container"></div>
-        </section>
-
-        <!-- Report 2 -->
-        <section class="report-section" aria-labelledby="rep2-title">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="rep2-title" style="font-size: 16px; font-weight: 700;">
-              2. Course-wise Discussion Activity (MySQL Multi-Table Aggregation)
-            </h3>
-            <button class="btn btn-secondary btn-sm btn-export-csv" data-report="course-activity">Export CSV</button>
-          </div>
-          <div id="rep2Container"></div>
-        </section>
-
-        <!-- Report 3 -->
-        <section class="report-section" aria-labelledby="rep3-title">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="rep3-title" style="font-size: 16px; font-weight: 700;">
-              3. Most Discussed Topics &amp; Distribution Share
-            </h3>
-            <button class="btn btn-secondary btn-sm btn-export-csv" data-report="topic-counts">Export CSV</button>
-          </div>
-          <div id="rep3Container"></div>
-        </section>
-
-        <!-- Report 4 -->
-        <section class="report-section" aria-labelledby="rep4-title">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="rep4-title" style="font-size: 16px; font-weight: 700;">
-              4. Most Useful Discussions (Composite Ranking: 2&times;Likes + 3&times;Comments)
-            </h3>
-          </div>
-          <div id="rep4Container"></div>
-        </section>
-
-        <!-- Report 5 -->
-        <section class="report-section" aria-labelledby="rep5-title">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="rep5-title" style="font-size: 16px; font-weight: 700;">
-              5. Average Review Rating by College &amp; Course (MongoDB Pipeline)
-            </h3>
-            <button class="btn btn-secondary btn-sm btn-export-csv" data-report="average-ratings">Export CSV</button>
-          </div>
-          <p style="font-size: 12.5px; color: var(--ink-muted); margin-bottom: 10px;">
-            Computed via MongoDB <code>$group</code> with <code>$avg</code>, <code>$min</code>, <code>$max</code>, and <code>$round</code> operators.
-          </p>
-          <div id="rep5Container"></div>
-        </section>
-
-        <!-- Report 6 -->
-        <section class="report-section" aria-labelledby="rep6-title">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="rep6-title" style="font-size: 16px; font-weight: 700;">
-              6. Review Distribution by College &amp; Category (MongoDB Aggregation)
-            </h3>
-          </div>
-          <div id="rep6Container"></div>
-        </section>
-
-        <!-- Report 7 -->
-        <section class="report-section" aria-labelledby="rep7-title">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="rep7-title" style="font-size: 16px; font-weight: 700;">
-              7. Monthly Activity Timeline (Combined Relational &amp; Document Time-Series)
-            </h3>
-          </div>
-          <div id="rep7Container"></div>
-        </section>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- MODAL: SIGN IN / REGISTER -->
-  <div id="modalAuth" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalAuthTitle">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-sm active" id="tabLoginBtn" type="button">Sign In</button>
-          <button class="btn btn-sm" id="tabRegisterBtn" type="button">Create Account</button>
+        <!-- Reviews Search & Filter -->
+        <div class="feed-search-bar" style="margin-bottom: 12px;">
+          <svg class="search-icon-inside" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="reviewsCollegeSearch" class="feed-search-input" placeholder="Search reviews by college name…" aria-label="Search reviews by college">
         </div>
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
-      </div>
 
-      <div class="modal-body">
-        <!-- Login Form -->
-        <form id="formLogin">
-          <h2 id="modalAuthTitle" style="font-size: 18px; margin-bottom: 14px;">Sign in to your account</h2>
-          <div class="form-group">
-            <label class="form-label" for="loginEmail">Email Address</label>
-            <input type="email" id="loginEmail" class="form-control" required placeholder="name@domain.com">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" class="form-control" required placeholder="Enter your password">
-          </div>
-          <div style="margin-bottom: 16px;">
-            <span style="font-size: 12px; color: var(--ink-muted);">Quick demo logins:</span>
-            <div class="demo-accounts" style="margin-top: 4px;">
-              <button type="button" class="demo-pill" data-email="aarav.demo@campustalk.local" data-password="password123">Aarav (Student)</button>
-              <button type="button" class="demo-pill" data-email="sneha.demo@campustalk.local" data-password="password123">Sneha (Prospective)</button>
-              <button type="button" class="demo-pill" data-email="admin.demo@campustalk.local" data-password="password123">Admin</button>
+        <div class="filter-pills-row" style="margin-bottom: 16px;">
+          <button class="filter-pill active" data-rev-cat="">All Categories</button>
+          <button class="filter-pill" data-rev-cat="Academics">Academics</button>
+          <button class="filter-pill" data-rev-cat="Placements">Placements</button>
+          <button class="filter-pill" data-rev-cat="Hostels">Hostels</button>
+          <button class="filter-pill" data-rev-cat="Campus Life">Campus Life</button>
+          <button class="filter-pill" data-rev-cat="Fees & ROI">Fees &amp; ROI</button>
+        </div>
+
+        <div id="reviewsStream">
+          <p style="color: var(--ink-muted);">Loading reviews…</p>
+        </div>
+
+        <div id="reviewsPagination"></div>
+      </section>
+
+      <!-- ==========================================
+           VIEW 6: NOTIFICATIONS
+           ========================================== -->
+      <section id="view-notifications" class="main-column view-container" hidden aria-labelledby="notificationsTitle">
+        <div class="page-header">
+          <h1 id="notificationsTitle" class="page-title">Notifications</h1>
+          <p class="page-subtitle">Activity on your questions, replies, and community contributions.</p>
+        </div>
+
+        <div id="notificationsStream">
+          <p style="color: var(--ink-muted);">Loading notifications…</p>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           VIEW 7: USER PROFILE
+           ========================================== -->
+      <section id="view-profile" class="main-column wide view-container" hidden aria-labelledby="profileHeading">
+        <div class="profile-card" id="profileCard">
+          <div class="profile-large-avatar" id="profileAvatarBig">U</div>
+          <div class="profile-info">
+            <h1 id="profileHeading" class="profile-name">Student Name</h1>
+            <div id="profileRoleTag" class="profile-badge">Current Student</div>
+            <p id="profileContextText" style="color: var(--ink-muted); font-size: 13.5px; margin-top: 6px;">Enrolled College &amp; Course</p>
+            <p id="profileBioText" style="color: var(--ink-secondary); font-size: 14px; margin-top: 10px; line-height: 1.5;"></p>
+            <div style="margin-top: 14px;">
+              <button class="btn btn-secondary btn-sm" id="btnEditProfileTrigger">Edit Profile</button>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
-        </form>
+        </div>
 
-        <!-- Register Form -->
-        <form id="formRegister" hidden>
-          <h2 style="font-size: 18px; margin-bottom: 14px;">Join CampusTalk</h2>
-          <div class="form-group">
-            <label class="form-label" for="regName">Full Name</label>
-            <input type="text" id="regName" class="form-control" required placeholder="e.g. Priyanshu Sharma">
+        <!-- Tabs: My Discussions / My Reviews -->
+        <div class="college-detail-tabs" role="tablist">
+          <button class="detail-tab-btn active" id="tabMyPosts" role="tab">My Discussions</button>
+          <button class="detail-tab-btn" id="tabMyReviews" role="tab">My Reviews</button>
+        </div>
+
+        <div id="profileTabContent"></div>
+      </section>
+
+      <!-- ==========================================
+           VIEW 8: SETTINGS
+           ========================================== -->
+      <section id="view-settings" class="main-column view-container" hidden aria-labelledby="settingsTitle">
+        <div class="page-header">
+          <h1 id="settingsTitle" class="page-title">Settings</h1>
+          <p class="page-subtitle">Manage your account and preferences.</p>
+        </div>
+
+        <div class="rail-widget" style="margin-bottom: 16px;">
+          <h2 style="font-size: 15px; font-weight: 700; margin-bottom: 10px;">Account &amp; Session</h2>
+          <p style="font-size: 13.5px; color: var(--ink-secondary); margin-bottom: 14px;">
+            Signed in as <strong id="settingsEmailText">Not signed in</strong>.
+          </p>
+          <button class="btn btn-secondary btn-sm" id="btnSettingsSignOut">Sign Out</button>
+        </div>
+
+        <!-- Academic / DBMS Evaluation Link -->
+        <div class="rail-widget" style="margin-bottom: 16px;">
+          <h2 style="font-size: 15px; font-weight: 700; margin-bottom: 6px;">DBMS Laboratory Project &amp; Reports</h2>
+          <p style="font-size: 13px; color: var(--ink-muted); margin-bottom: 12px;">
+            Access the live relational and document queries, group by aggregations, and evaluation reports.
+          </p>
+          <button class="btn btn-primary btn-sm" id="btnOpenReportsModal">View DBMS Reports &amp; Analytics</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- DESKTOP RIGHT RAIL -->
+    <aside class="app-right-rail" aria-label="Community highlights">
+      <!-- User Snapshot Widget -->
+      <div class="rail-widget" id="railUserWidget" hidden>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="user-avatar" id="railAvatar" style="width: 44px; height: 44px; font-size: 16px;">U</div>
+          <div style="min-width: 0;">
+            <div id="railUserName" style="font-weight: 700; font-size: 14px; color: var(--ink-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">User Name</div>
+            <div id="railUserRole" style="font-size: 12px; color: var(--ink-muted);">Student</div>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="regEmail">Email Address</label>
-            <input type="email" id="regEmail" class="form-control" required placeholder="student@example.com">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="regPassword">Password (Min. 6 characters)</label>
-            <input type="password" id="regPassword" class="form-control" required minlength="6" placeholder="Choose a password">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="regRole">Student Status</label>
-            <select id="regRole" class="form-control">
-              <option value="prospective_student">Prospective Student (Researching colleges)</option>
-              <option value="current_student">Current Student (Enrolled in a college)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="regYear">Academic Year (Optional)</label>
-            <input type="text" id="regYear" class="form-control" placeholder="e.g. 2nd Year, 2026 Aspirant">
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
-        </form>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="railViewProfileBtn" style="width: 100%; margin-top: 12px;">View Profile</button>
       </div>
-    </div>
+
+      <!-- Unanswered Questions Widget ("Help a Junior") -->
+      <div class="rail-widget">
+        <div class="rail-widget-title">
+          <span>Unanswered Questions</span>
+          <span style="font-size: 11px; background: var(--primary-subtle); color: var(--primary); padding: 2px 7px; border-radius: 99px;">Help a junior</span>
+        </div>
+        <ul class="rail-list" id="railUnansweredList">
+          <li class="rail-item"><span style="color: var(--ink-muted); font-size: 12.5px;">Loading questions…</span></li>
+        </ul>
+      </div>
+
+      <!-- Popular Colleges Widget -->
+      <div class="rail-widget">
+        <div class="rail-widget-title">
+          <span>Popular Colleges</span>
+          <a href="#" class="rail-widget-link" id="railExploreAllLink">See all</a>
+        </div>
+        <ul class="rail-list" id="railTopCollegesList">
+          <li class="rail-item"><span style="color: var(--ink-muted); font-size: 12.5px;">Loading…</span></li>
+        </ul>
+      </div>
+
+      <div class="rail-footer-links">
+        <div><a href="#" id="railDbmsLink">DBMS Evaluation Insights</a> &middot; <a href="#" id="railHelpLink">FAQ</a></div>
+        <div style="margin-top: 4px;">&copy; 2026 CampusTalk &middot; University Project</div>
+      </div>
+    </aside>
+
   </div>
 
-  <!-- MODAL: ASK A QUESTION / NEW POST -->
-  <div id="modalNewPost" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalNewPostTitle">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h2 id="modalNewPostTitle" class="modal-title">Ask a College Question</h2>
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="mobile-bottom-nav" role="navigation" aria-label="Mobile Navigation">
+    <button class="mobile-nav-btn active" data-view="home" aria-label="Home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="mobile-nav-btn" data-view="explore" aria-label="Explore">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      <span>Explore</span>
+    </button>
+    <button class="mobile-nav-btn" id="mobileNavAskBtn" aria-label="Ask a question">
+      <div class="mobile-nav-ask">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </div>
-      <form id="formNewPost">
+    </button>
+    <button class="mobile-nav-btn" data-view="reviews" aria-label="Reviews">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span>Reviews</span>
+    </button>
+    <button class="mobile-nav-btn" data-view="profile" aria-label="Profile">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- ==========================================================================
+       MODALS & DIALOGS
+       ========================================================================== -->
+
+  <!-- MODAL: ASK A QUESTION -->
+  <div id="modalAsk" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="modalAskTitle">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h2 id="modalAskTitle" class="modal-title">Ask a College Question</h2>
+        <button class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="formAskQuestion">
         <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="newPostCourse">Select College &amp; Course</label>
-            <select id="newPostCourse" class="form-control" required>
-              <option value="">Loading courses…</option>
+          <div class="form-field">
+            <label class="form-label" for="askCollege">College</label>
+            <select id="askCollege" class="form-select" required>
+              <option value="">Select an institution…</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="newPostTitle">Question Title</label>
-            <input type="text" id="newPostTitle" class="form-control" required maxlength="200" placeholder="e.g. How is the placement assistance for ISE students?">
+
+          <div class="form-field">
+            <label class="form-label" for="askCourse">Degree Program / Branch</label>
+            <select id="askCourse" class="form-select" required>
+              <option value="">Select college first…</option>
+            </select>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="newPostTopic">Discussion Category</label>
-            <select id="newPostTopic" class="form-control" required>
-              <option value="Academics">Academics</option>
-              <option value="Placements">Placements</option>
-              <option value="Hostels">Hostels</option>
-              <option value="Campus Life">Campus Life</option>
-              <option value="Clubs">Clubs</option>
-              <option value="Admissions">Admissions</option>
-              <option value="Faculty">Faculty</option>
-              <option value="Fees &amp; ROI">Fees &amp; ROI</option>
+
+          <div class="form-field">
+            <label class="form-label" for="askTopic">Category</label>
+            <select id="askTopic" class="form-select" required>
+              <option value="Academics">Academics &amp; Workload</option>
+              <option value="Placements">Placements &amp; Internships</option>
+              <option value="Hostels">Hostels &amp; Mess Food</option>
+              <option value="Campus Life">Campus Life &amp; Events</option>
+              <option value="Clubs">Clubs &amp; Societies</option>
+              <option value="Admissions">Admissions &amp; Cutoffs</option>
+              <option value="Fees & ROI">Fees &amp; ROI</option>
               <option value="Other">Other</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="newPostContent">Details &amp; Context</label>
-            <textarea id="newPostContent" class="form-control" required rows="4" placeholder="Provide background information so current students can give concrete answers…"></textarea>
+
+          <div class="form-field">
+            <label class="form-label" for="askTitle">Question Title</label>
+            <input type="text" id="askTitle" class="form-input" required maxlength="200" placeholder="e.g. How intensive is the 1st year assignment workload?">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="askContent">Details</label>
+            <textarea id="askContent" class="form-textarea" required rows="4" placeholder="Provide background so current seniors can give concrete, actionable advice…"></textarea>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-foot">
           <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary">Publish Discussion</button>
+          <button type="submit" class="btn btn-primary">Publish Question</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: EDIT POST -->
-  <div id="modalEditPost" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalEditPostTitle">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h2 id="modalEditPostTitle" class="modal-title">Edit Discussion</h2>
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
+  <!-- MODAL: WRITE A REVIEW -->
+  <div id="modalReview" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="modalReviewTitle">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h2 id="modalReviewTitle" class="modal-title">Share Your College Experience</h2>
+        <button class="modal-close-btn" aria-label="Close dialog">&times;</button>
       </div>
-      <form id="formEditPost">
-        <input type="hidden" id="editPostId">
+      <form id="formWriteReview">
         <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="editPostTitle">Title</label>
-            <input type="text" id="editPostTitle" class="form-control" required maxlength="200">
+          <div class="form-field">
+            <label class="form-label" for="revCollege">College</label>
+            <input type="text" id="revCollege" class="form-input" required placeholder="e.g. PES University">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="editPostTopic">Category</label>
-            <select id="editPostTopic" class="form-control" required>
-              <option value="Academics">Academics</option>
-              <option value="Placements">Placements</option>
-              <option value="Hostels">Hostels</option>
-              <option value="Campus Life">Campus Life</option>
-              <option value="Clubs">Clubs</option>
-              <option value="Admissions">Admissions</option>
-              <option value="Faculty">Faculty</option>
-              <option value="Fees &amp; ROI">Fees &amp; ROI</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="editPostContent">Content</label>
-            <textarea id="editPostContent" class="form-control" required rows="5"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- MODAL: WRITE REVIEW (MONGODB) -->
-  <div id="modalNewReview" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalNewReviewTitle">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h2 id="modalNewReviewTitle" class="modal-title">Write a Student Review (MongoDB)</h2>
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
-      </div>
-      <form id="formNewReview">
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="reviewCollege">College Name</label>
-            <input type="text" id="reviewCollege" class="form-control" required placeholder="e.g. PES University">
+          <div class="form-field">
+            <label class="form-label" for="revCourse">Course / Branch</label>
+            <input type="text" id="revCourse" class="form-input" required placeholder="e.g. B.Tech Computer Science">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="reviewCourse">Course &amp; Branch</label>
-            <input type="text" id="reviewCourse" class="form-control" required placeholder="e.g. B.Tech Computer Science and Engineering">
-          </div>
-          <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label class="form-label" for="reviewCategory">Review Category</label>
-              <select id="reviewCategory" class="form-control" required>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-field">
+              <label class="form-label" for="revCategory">Review Category</label>
+              <select id="revCategory" class="form-select" required>
                 <option value="Academics">Academics</option>
                 <option value="Placements">Placements</option>
                 <option value="Hostels">Hostels</option>
                 <option value="Campus Life">Campus Life</option>
                 <option value="Clubs">Clubs</option>
-                <option value="Fees &amp; ROI">Fees &amp; ROI</option>
+                <option value="Fees & ROI">Fees &amp; ROI</option>
               </select>
             </div>
-            <div>
-              <label class="form-label" for="reviewRating">Overall Rating</label>
-              <select id="reviewRating" class="form-control" required>
+            <div class="form-field">
+              <label class="form-label" for="revRating">Rating</label>
+              <select id="revRating" class="form-select" required>
                 <option value="5">★★★★★ 5 - Excellent</option>
                 <option value="4">★★★★☆ 4 - Good</option>
                 <option value="3">★★★☆☆ 3 - Average</option>
@@ -520,108 +523,195 @@
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="reviewTitle">Review Summary / Headline</label>
-            <input type="text" id="reviewTitle" class="form-control" placeholder="e.g. High academic rigor with top-notch placements">
+
+          <div class="form-field">
+            <label class="form-label" for="revTitle">Headline</label>
+            <input type="text" id="revTitle" class="form-input" placeholder="e.g. Great peer group and competitive placement season">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="reviewText">Detailed Experience</label>
-            <textarea id="reviewText" class="form-control" required rows="3" placeholder="Share specific details about faculty, exams, atmosphere…"></textarea>
+
+          <div class="form-field">
+            <label class="form-label" for="revText">Detailed Experience</label>
+            <textarea id="revText" class="form-textarea" required rows="3" placeholder="Share specific details on what prospective students should expect…"></textarea>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="reviewPros">Key Strengths (Pros)</label>
-            <input type="text" id="reviewPros" class="form-control" placeholder="e.g. Industry curriculum, hackathons">
+
+          <div class="form-field">
+            <label class="form-label" for="revPros">Key Strengths (Pros)</label>
+            <input type="text" id="revPros" class="form-input" placeholder="e.g. Coding culture, lab facilities">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="reviewCons">Drawbacks (Cons)</label>
-            <input type="text" id="reviewCons" class="form-control" placeholder="e.g. Strict attendance, heavy internal workload">
+
+          <div class="form-field">
+            <label class="form-label" for="revCons">Drawbacks (Cons)</label>
+            <input type="text" id="revCons" class="form-input" placeholder="e.g. Strict attendance, heavy exam schedule">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="reviewAdvice">Advice to Prospective Juniors</label>
-            <input type="text" id="reviewAdvice" class="form-control" placeholder="e.g. Start LeetCode early and build good rapport with professors">
+
+          <div class="form-field">
+            <label class="form-label" for="revAdvice">Advice for Juniors</label>
+            <input type="text" id="revAdvice" class="form-input" placeholder="e.g. Practice data structures from 2nd year">
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-foot">
           <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Review in MongoDB</button>
+          <button type="submit" class="btn btn-primary">Submit Review</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: USER PROFILE -->
-  <div id="modalProfile" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalProfileTitle">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h2 id="modalProfileTitle" class="modal-title">Student Profile</h2>
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
+  <!-- MODAL: AUTHENTICATION (SIGN IN / REGISTER) -->
+  <div id="modalAuth" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="modalAuthTitle">
+    <div class="modal-window">
+      <div class="modal-head">
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-sm btn-primary" id="btnTabAuthLogin">Sign In</button>
+          <button type="button" class="btn btn-sm btn-secondary" id="btnTabAuthRegister">Register</button>
+        </div>
+        <button class="modal-close-btn" aria-label="Close dialog">&times;</button>
       </div>
-      <form id="formProfile">
-        <div class="modal-body">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-sm);">
-            <div>
-              <div style="font-size: 12px; color: var(--ink-muted);">Role</div>
-              <strong id="profileRole">Student</strong>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--ink-muted);">Discussions Created</div>
-              <strong id="profilePostsCount">0</strong>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: var(--ink-muted);">Comments Contributed</div>
-              <strong id="profileCommentsCount">0</strong>
-            </div>
+
+      <div class="modal-body">
+        <!-- Login Form -->
+        <form id="formModalLogin">
+          <h2 id="modalAuthTitle" style="font-size: 18px; margin-bottom: 12px; font-weight: 800;">Sign In</h2>
+          <div class="form-field">
+            <label class="form-label" for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" class="form-input" required placeholder="name@domain.com">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="profileName">Full Name</label>
-            <input type="text" id="profileName" class="form-control" required>
+          <div class="form-field">
+            <label class="form-label" for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" class="form-input" required placeholder="Your password">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="profileEmail">Email</label>
-            <input type="email" id="profileEmail" class="form-control" disabled style="background:#e2e8f0;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Sign In</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="formModalRegister" hidden>
+          <h2 style="font-size: 18px; margin-bottom: 12px; font-weight: 800;">Create Account</h2>
+          <div class="form-field">
+            <label class="form-label" for="regName">Full Name</label>
+            <input type="text" id="regName" class="form-input" required placeholder="e.g. Priya Sharma">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="profileYear">Academic Year</label>
-            <input type="text" id="profileYear" class="form-control" placeholder="e.g. 3rd Year, Class of 2026">
+          <div class="form-field">
+            <label class="form-label" for="regEmail">Email Address</label>
+            <input type="email" id="regEmail" class="form-input" required placeholder="student@example.com">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="profileCourse">Enrolled Course (Optional)</label>
-            <select id="profileCourse" class="form-control">
-              <option value="">No college course linked</option>
+          <div class="form-field">
+            <label class="form-label" for="regPassword">Password (Min. 6 chars)</label>
+            <input type="password" id="regPassword" class="form-input" required minlength="6" placeholder="Choose a secure password">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="regRole">Student Status</label>
+            <select id="regRole" class="form-select">
+              <option value="prospective_student">Prospective Student (Researching)</option>
+              <option value="current_student">Current Student (Enrolled)</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="profileBio">Bio</label>
-            <textarea id="profileBio" class="form-control" rows="2" placeholder="Tell other students about your interests…"></textarea>
+          <div class="form-field">
+            <label class="form-label" for="regYear">Academic Year</label>
+            <input type="text" id="regYear" class="form-input" placeholder="e.g. 3rd Year, Class of 2026">
           </div>
-          <div class="form-group">
-            <label class="form-label" for="profileInterests">Interests</label>
-            <input type="text" id="profileInterests" class="form-control" placeholder="e.g. Web Development, Robotics, Cloud">
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT POST -->
+  <div id="modalEditPost" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="modalEditPostTitle">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h2 id="modalEditPostTitle" class="modal-title">Edit Discussion</h2>
+        <button class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="formEditPost">
+        <input type="hidden" id="editPostId">
+        <div class="modal-body">
+          <div class="form-field">
+            <label class="form-label" for="editPostTitle">Title</label>
+            <input type="text" id="editPostTitle" class="form-input" required maxlength="200">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="editPostTopic">Category</label>
+            <select id="editPostTopic" class="form-select" required>
+              <option value="Academics">Academics</option>
+              <option value="Placements">Placements</option>
+              <option value="Hostels">Hostels</option>
+              <option value="Campus Life">Campus Life</option>
+              <option value="Clubs">Clubs</option>
+              <option value="Admissions">Admissions</option>
+              <option value="Fees & ROI">Fees &amp; ROI</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="editPostContent">Details</label>
+            <textarea id="editPostContent" class="form-textarea" required rows="5"></textarea>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-foot">
           <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update Profile</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Toast Notification Area (Screen Reader Live Region) -->
-  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- Footer -->
-  <footer class="app-footer" role="contentinfo">
-    <div class="footer-links">
-      <a href="#" onclick="window.CampusTalk.switchView('discussions'); return false;">Discussions</a>
-      <a href="#" onclick="window.CampusTalk.switchView('colleges'); return false;">Colleges</a>
-      <a href="#" onclick="window.CampusTalk.switchView('reviews'); return false;">Reviews (MongoDB)</a>
-      <a href="#" onclick="window.CampusTalk.switchView('reports'); return false;">Reports (SQL)</a>
+  <!-- MODAL: EDIT PROFILE -->
+  <div id="modalEditProfile" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="modalEditProfileTitle">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h2 id="modalEditProfileTitle" class="modal-title">Edit Profile</h2>
+        <button class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="formEditProfile">
+        <div class="modal-body">
+          <div class="form-field">
+            <label class="form-label" for="editProfileName">Full Name</label>
+            <input type="text" id="editProfileName" class="form-input" required>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="editProfileYear">Academic Year</label>
+            <input type="text" id="editProfileYear" class="form-input" placeholder="e.g. 3rd Year">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="editProfileBio">Bio</label>
+            <textarea id="editProfileBio" class="form-textarea" rows="2" placeholder="Tell students what you study or what questions you can answer…"></textarea>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="editProfileInterests">Interests</label>
+            <input type="text" id="editProfileInterests" class="form-input" placeholder="e.g. Distributed Systems, Hackathons, Basketball">
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Profile</button>
+        </div>
+      </form>
     </div>
-    <p>
-      CampusTalk &middot; University DBMS Laboratory Evaluation Project &middot; MySQL 8.0 &amp; MongoDB Dual-Store Architecture
-    </p>
-  </footer>
+  </div>
+
+  <!-- MODAL: DBMS REPORTS & ANALYTICS -->
+  <div id="modalReports" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="modalReportsTitle">
+    <div class="modal-window wide">
+      <div class="modal-head">
+        <h2 id="modalReportsTitle" class="modal-title">DBMS Project Evaluation Reports</h2>
+        <button class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: var(--bg-subtle); padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 20px;">
+          Live relational aggregate queries (MySQL <code>LEFT JOIN</code>, <code>GROUP BY</code>) and document aggregation pipelines (MongoDB <code>$group</code>).
+        </div>
+        <div id="reportsModalContainer">
+          <p style="color: var(--ink-muted);">Loading database reports…</p>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary btn-modal-cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Shelf -->
+  <div id="toastShelf" class="toast-shelf" aria-live="polite" aria-atomic="true"></div>
 
   <script src="app.js"></script>
 </body>

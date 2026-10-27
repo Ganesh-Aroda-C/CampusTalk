@@ -16,7 +16,7 @@ async function getPosts(req, res) {
   const pool = getSqlPool();
 
   try {
-    const { college_id, course_id, topic, q, unanswered, sort, page = 1, limit = 10 } = req.query;
+    const { college_id, course_id, topic, q, unanswered, sort, author_id, page = 1, limit = 10 } = req.query;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
@@ -24,6 +24,11 @@ async function getPosts(req, res) {
 
     const filters = [];
     const params = [];
+
+    if (author_id) {
+      filters.push('p.user_id = ?');
+      params.push(Number(author_id));
+    }
 
     if (college_id) {
       filters.push('cl.college_id = ?');
