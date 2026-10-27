@@ -1,38 +1,628 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CampusTalk — Student voices, clearer choices</title>
-<style>
-:root{--ink:#18202b;--muted:#657184;--paper:#f5f7fb;--card:#fff;--accent:#5145cd;--line:#e2e7ef;--green:#16794b}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{background:#171b2c;color:#fff;padding:24px max(22px,calc((100vw - 1120px)/2));display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}.brand{font-size:25px;font-weight:800;letter-spacing:-.8px}.brand span{color:#b7afff}header p{margin:3px 0 0;color:#c5c9d6}.wrap{max-width:1120px;margin:28px auto;padding:0 18px}.hero{background:linear-gradient(120deg,#e9e7ff,#fff 72%);border:1px solid #dcd8ff;border-radius:20px;padding:28px;margin-bottom:22px}.hero h1{font-size:clamp(25px,4vw,38px);line-height:1.15;letter-spacing:-1px;margin:0 0 10px}.hero p{color:#535d70;max-width:690px;margin:0}.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.pill{background:#fff;border:1px solid var(--line);padding:7px 11px;border-radius:99px;font-size:13px}.layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(290px,.8fr);gap:20px;align-items:start}.panel,.post{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:19px;margin-bottom:16px;box-shadow:0 3px 14px #17213a08}.panel h2{font-size:18px;margin:0 0 14px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}input,select,textarea{width:100%;padding:10px 11px;border:1px solid #d6dce7;border-radius:9px;background:#fff;font:inherit;color:var(--ink)}textarea{min-height:90px;resize:vertical}.toolbar input{flex:1;min-width:150px}.toolbar select{width:auto;min-width:145px}.field{margin-bottom:11px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:#4b5567}button{border:0;border-radius:9px;background:var(--accent);color:#fff;font:inherit;font-weight:700;padding:10px 14px;cursor:pointer}button.secondary{background:#efefff;color:#3f36a8}button:disabled{opacity:.5;cursor:not-allowed}.post h3{margin:8px 0 7px;font-size:18px;line-height:1.3}.post p{margin:0 0 12px;color:#515c6e;white-space:pre-wrap}.meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}.tag{display:inline-block;background:#efefff;color:#4339a4;border-radius:6px;padding:3px 7px;font-size:11px;font-weight:800}.post-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.post-actions button{font-size:12px;padding:7px 10px}.comments{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.comment{font-size:13px;margin:8px 0;color:#465164}.muted{color:var(--muted);font-size:13px}.notice{padding:10px 12px;border-radius:9px;background:#eef8f1;color:#17663e;margin-bottom:12px;display:none;white-space:pre-wrap}.notice.error{background:#fff0f0;color:#a02727}.report-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.report-row:last-child{border:0}.score{font-weight:800;color:var(--accent)}.status{font-size:12px;color:var(--muted)}footer{text-align:center;color:var(--muted);font-size:12px;padding:26px}@media(max-width:760px){.layout{grid-template-columns:1fr}.wrap{margin-top:16px}.hero{padding:21px}header{padding:18px}}
-</style></head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CampusTalk — Student Voices, Clearer College Choices</title>
+  <meta name="description" content="A comprehensive college discussion and student information platform powered by MySQL RDBMS and MongoDB NoSQL for university DBMS evaluation.">
+  <link rel="stylesheet" href="styles.css">
+</head>
 <body>
-<header><div><div class="brand">Campus<span>Talk</span></div><p>Student voices. Clearer college choices.</p></div><div id="connection" class="status">Checking database connections…</div></header>
-<main class="wrap">
-<section class="hero"><h1>Make your college decision with confidence.</h1><p>Ask real questions, learn from student experiences, and compare what matters—from academics and placements to hostels and campus life.</p><div class="stats"><span class="pill">💬 Student discussions</span><span class="pill">🎓 College-specific</span><span class="pill">📊 Community reports</span></div></section>
-<div id="notice" class="notice"></div>
-<div class="layout"><section>
-<div class="panel"><h2>Explore discussions</h2><div class="toolbar"><input id="search" placeholder="Search questions…"><select id="collegeFilter"><option value="">All colleges</option></select><select id="topicFilter"><option value="">All topics</option><option>Academics</option><option>Placements</option><option>Hostels</option><option>Campus Life</option><option>Clubs</option><option>Admissions</option><option>Other</option></select></div><div id="posts"><p class="muted">Loading discussions…</p></div></div>
-<div class="panel"><h2>Student experience reviews <span class="tag">MongoDB</span></h2><p class="muted">Flexible review documents let students review different aspects of a college.</p><form id="reviewForm"><div class="field"><label>College</label><input name="college_name" required placeholder="e.g. PES University"></div><div class="field"><label>Course</label><input name="course_name" required placeholder="e.g. B.Tech Computer Science"></div><div class="field"><label>Your display name</label><input name="reviewer_name" required placeholder="e.g. Current student"></div><div class="field"><label>Review category</label><select name="category"><option>Academics</option><option>Placements</option><option>Hostels</option><option>Campus Life</option><option>Clubs</option></select></div><div class="field"><label>Rating (1–5)</label><select name="rating"><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Average</option><option value="2">2 — Below average</option><option value="1">1 — Poor</option></select></div><div class="field"><label>Your experience</label><textarea name="review_text" required placeholder="Share specific, helpful details…"></textarea></div><button type="submit">Submit review</button></form><div id="reviews" style="margin-top:16px"></div></div>
-</section><aside>
-<div class="panel"><h2>Ask a question <span class="tag">MySQL</span></h2><p class="muted">Demo account: Prospective Student (ID 2). Select a course before posting.</p><form id="postForm"><div class="field"><label>Question title</label><input name="title" required maxlength="200" placeholder="e.g. How are placements in CSE?"></div><div class="field"><label>Details</label><textarea name="content" required placeholder="Add context so students can give useful answers…"></textarea></div><div class="field"><label>College & course</label><select name="course_id" id="courseSelect" required><option value="">Loading courses…</option></select></div><div class="field"><label>Topic</label><select name="topic"><option>Academics</option><option>Placements</option><option>Hostels</option><option>Campus Life</option><option>Clubs</option><option>Admissions</option><option>Other</option></select></div><button type="submit">Publish question</button></form></div>
-<div class="panel"><h2>Project reports <span class="tag">SQL</span></h2><p class="muted">Live aggregate queries from the relational database.</p><div><strong style="font-size:13px">Posts by college</strong><div id="collegeReport" class="muted">Loading…</div></div><div style="margin-top:16px"><strong style="font-size:13px">Posts by topic</strong><div id="topicReport" class="muted">Loading…</div></div><div style="margin-top:16px"><strong style="font-size:13px">Top contributors</strong><div id="contributors" class="muted">Loading…</div></div><button class="secondary" style="margin-top:12px" onclick="loadReports()">Refresh reports</button></div>
-<div class="panel"><h2>Demo walkthrough</h2><ol class="muted" style="padding-left:19px"><li>Browse and filter discussions.</li><li>Post a question (MySQL).</li><li>Add a comment (MySQL).</li><li>Submit a review (MongoDB).</li><li>Refresh reports (SQL GROUP BY).</li></ol></div>
-</aside></div></main><footer>CampusTalk · DBMS Project Lab · Demo data is illustrative</footer>
-<script>
-const $=s=>document.querySelector(s);let colleges=[];let courses=[];
-function notify(message,error=false){const el=$('#notice');el.textContent=message;el.className='notice'+(error?' error':'');el.style.display='block';window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>el.style.display='none',5000)}
-async function api(url,options={}){const r=await fetch(url,{headers:{'Content-Type':'application/json',...(options.headers||{})},...options});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`Request failed (${r.status})`);return data}
-async function init(){try{const h=await api('/api/health');$('#connection').textContent=`MySQL: ${h.mysql} · MongoDB: ${h.mongodb}`;if(h.mysql!=='connected'||h.mongodb!=='connected')$('#connection').style.color='#ffb6b6';[colleges,courses]=await Promise.all([api('/api/colleges'),api('/api/courses')]);colleges.forEach(c=>$('#collegeFilter').insertAdjacentHTML('beforeend',`<option value="${c.college_id}">${esc(c.college_name)}</option>`));$('#courseSelect').innerHTML=courses.map(c=>`<option value="${c.course_id}">${esc(c.college_name)} — ${esc(c.course_name)}</option>`).join('');await Promise.all([loadPosts(),loadReviews(),loadReports()]);}catch(e){$('#connection').textContent='Connection issue — check server setup';notify(e.message,true)}}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function loadPosts(){const p=new URLSearchParams();if($('#collegeFilter').value)p.set('college_id',$('#collegeFilter').value);if($('#topicFilter').value)p.set('topic',$('#topicFilter').value);if($('#search').value.trim())p.set('q',$('#search').value.trim());const posts=await api('/api/posts?'+p);$('#posts').innerHTML=posts.length?posts.map(x=>`<article class="post"><div class="meta"><span class="tag">${esc(x.topic)}</span><span>${esc(x.college_name)} · ${esc(x.course_name)}</span></div><h3>${esc(x.title)}</h3><p>${esc(x.content)}</p><div class="meta">Asked by ${esc(x.author)} · ${new Date(x.created_at).toLocaleString()} · ${x.comment_count} comments · ${x.like_count} likes</div><div class="post-actions"><button class="secondary" onclick="showComments(${x.post_id},this)">View comments</button><button class="secondary" onclick="addComment(${x.post_id})">Add comment</button></div><div class="comments" id="comments-${x.post_id}" hidden></div></article>`).join(''):'<p class="muted">No discussions match these filters yet. Start one using Ask a question.</p>'}
-async function showComments(id,btn){const box=$('#comments-'+id);if(!box.hidden){box.hidden=true;return}try{const rows=await api(`/api/posts/${id}/comments`);box.innerHTML=rows.length?rows.map(c=>`<div class="comment"><strong>${esc(c.author)}:</strong> ${esc(c.content)}</div>`).join(''):'<div class="muted">No comments yet.</div>';box.hidden=false;btn.textContent='Hide comments'}catch(e){notify(e.message,true)}}
-async function addComment(id){const content=prompt('Write your comment:');if(!content||!content.trim())return;try{await api(`/api/posts/${id}/comments`,{method:'POST',body:JSON.stringify({user_id:1,content})});notify('Comment added successfully.');await loadPosts()}catch(e){notify(e.message,true)}}
-$('#postForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target);try{await api('/api/posts',{method:'POST',body:JSON.stringify({user_id:2,course_id:Number(f.get('course_id')),title:f.get('title'),content:f.get('content'),topic:f.get('topic')})});e.target.reset();notify('Question published to MySQL.');await Promise.all([loadPosts(),loadReports()])}catch(err){notify(err.message,true)}});
-$('#reviewForm').addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target);try{await api('/api/reviews',{method:'POST',body:JSON.stringify(Object.fromEntries(f.entries()))});e.target.reset();notify('Review saved in MongoDB.');await loadReviews()}catch(err){notify(err.message,true)}});
-async function loadReviews(){const rows=await api('/api/reviews');$('#reviews').innerHTML=rows.length?'<strong style="font-size:13px">Recent reviews</strong>'+rows.map(r=>`<div class="report-row" style="display:block"><div><strong>${esc(r.college_name)}</strong> · ${esc(r.category)} <span class="score">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div><div class="muted">${esc(r.course_name)} · by ${esc(r.reviewer_name)}</div><div style="margin-top:4px">${esc(r.review_text)}</div></div>`).join(''):'<p class="muted">No reviews yet. Add one above to demonstrate MongoDB.</p>'}
-function rowsHtml(rows,label,value){return rows.length?rows.map(r=>`<div class="report-row"><span>${esc(r[label])}</span><strong>${esc(r[value])}</strong></div>`).join(''):'<p class="muted">No data yet.</p>'}
-async function loadReports(){try{const [c,t,u]=await Promise.all([api('/api/reports/college-posts'),api('/api/reports/topic-counts'),api('/api/reports/top-contributors')]);$('#collegeReport').innerHTML=rowsHtml(c,'college_name','total_posts');$('#topicReport').innerHTML=rowsHtml(t,'topic','total_posts');$('#contributors').innerHTML=u.map(x=>`<div class="report-row"><span>${esc(x.name)}<br><small>${x.comments_received} comments</small></span><strong>${x.likes_received} likes</strong></div>`).join('')||'<p class="muted">No data yet.</p>'}catch(e){notify(e.message,true)}}
-$('#collegeFilter').addEventListener('change',()=>loadPosts().catch(e=>notify(e.message,true)));$('#topicFilter').addEventListener('change',()=>loadPosts().catch(e=>notify(e.message,true)));let searchTimer;$('#search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadPosts().catch(e=>notify(e.message,true)),250)});
-init();
-</script></body></html>
+
+  <!-- Accessible Skip Link -->
+  <a href="#main-content" style="position: absolute; left: -9999px; top: 0; padding: 8px; background: #000; color: #fff; z-index: 1000;" onfocus="this.style.left='0';">
+    Skip to main content
+  </a>
+
+  <!-- App Header -->
+  <header class="app-header" role="banner">
+    <div class="header-inner">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="#" class="brand" onclick="window.CampusTalk.switchView('discussions'); return false;" aria-label="CampusTalk Home">
+          <div class="brand-icon" aria-hidden="true">CT</div>
+          <div>
+            <span class="brand-title">Campus<span>Talk</span></span>
+            <span class="brand-tag">DBMS Lab</span>
+          </div>
+        </a>
+
+        <nav aria-label="Main Navigation">
+          <ul class="nav-links">
+            <li><button class="nav-btn active" data-view="discussions">💬 Discussions</button></li>
+            <li><button class="nav-btn" data-view="colleges">🎓 Colleges</button></li>
+            <li><button class="nav-btn" data-view="reviews">⭐ Reviews <span class="badge badge-db">MongoDB</span></button></li>
+            <li><button class="nav-btn" data-view="reports">📊 DBMS Reports <span class="badge badge-db">SQL</span></button></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div id="connStatus" class="status-pill" title="Real-time Database Connection Status">
+          <span class="dot"></span> Checking DBs…
+        </div>
+        <div id="userControls" class="user-controls"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main id="main-content" class="container" role="main">
+
+    <!-- Hero Banner -->
+    <section class="hero-card" aria-labelledby="hero-heading">
+      <h1 id="hero-heading">Make your college decision with confidence.</h1>
+      <p>
+        Reliable, first-hand academic and campus experiences shared by current students.
+        Explore college-specific discussions, course workloads, hostels, and verified student reviews before you enroll.
+      </p>
+      <div class="hero-stats">
+        <button class="btn btn-primary" id="heroBtnExplore">🎓 Explore Colleges</button>
+        <button class="btn btn-secondary" id="heroBtnDiscussions">💬 Browse Questions</button>
+        <button class="btn btn-subtle" id="heroBtnReviews">⭐ Student Reviews (NoSQL)</button>
+        <div class="hero-pill">⚡ Powered by MySQL Relational &amp; MongoDB Document Stores</div>
+      </div>
+    </section>
+
+    <!-- VIEW 1: DISCUSSIONS (DEFAULT) -->
+    <div id="view-discussions" class="view-section">
+      <div class="layout-grid">
+        <!-- Main Feed Column -->
+        <div>
+          <!-- Filter Toolbar -->
+          <div class="panel" style="margin-bottom: 16px;">
+            <div class="toolbar">
+              <div class="search-box">
+                <span class="search-icon" aria-hidden="true">🔍</span>
+                <input type="search" id="filterSearch" class="search-input" placeholder="Search questions, topics, colleges…" aria-label="Search discussions">
+              </div>
+
+              <select id="filterCollege" class="select-input" aria-label="Filter by college">
+                <option value="">All Colleges</option>
+              </select>
+
+              <select id="filterTopic" class="select-input" aria-label="Filter by topic">
+                <option value="">All Topics</option>
+              </select>
+
+              <select id="filterSort" class="select-input" aria-label="Sort discussions">
+                <option value="recent">Sort: Most Recent</option>
+                <option value="popular">Sort: Most Popular</option>
+                <option value="unanswered">Sort: Unanswered (0 Replies)</option>
+                <option value="likes">Sort: Most Liked</option>
+              </select>
+            </div>
+
+            <!-- Quick Filter Chips -->
+            <div class="chip-row" role="group" aria-label="Filter by topic chips">
+              <button class="chip active" data-topic="">All</button>
+              <button class="chip" data-special="popular">🔥 Popular</button>
+              <button class="chip" data-special="unanswered">❓ Unanswered Questions</button>
+              <button class="chip" data-topic="Academics">Academics</button>
+              <button class="chip" data-topic="Placements">Placements</button>
+              <button class="chip" data-topic="Hostels">Hostels</button>
+              <button class="chip" data-topic="Campus Life">Campus Life</button>
+              <button class="chip" data-topic="Clubs">Clubs</button>
+            </div>
+          </div>
+
+          <!-- Discussions List -->
+          <div id="postsList" role="region" aria-label="Discussion feed" aria-live="polite">
+            <p style="color: var(--ink-muted);">Loading discussions…</p>
+          </div>
+
+          <!-- Pagination -->
+          <div id="postsPagination"></div>
+        </div>
+
+        <!-- Contextual Sidebar -->
+        <aside aria-label="Community highlights">
+          <!-- Novelty Contribution Box -->
+          <div class="panel">
+            <h2 class="panel-title" style="font-size: 15px;">
+              💡 Defensible Project Novelty
+            </h2>
+            <p style="font-size: 13px; color: var(--ink-secondary); margin: 8px 0;">
+              <strong>Context-Aware Discovery &amp; Unanswered Questions:</strong> CampusTalk bridges prospective students with verified seniors.
+            </p>
+            <div style="background: var(--bg-subtle); padding: 10px; border-radius: var(--radius-sm); font-size: 12.5px; margin-top: 8px;">
+              Use the <span class="badge badge-prospective">❓ Unanswered</span> filter to find questions that current seniors haven't replied to yet.
+            </div>
+          </div>
+
+          <!-- Quick Demo Switcher Panel -->
+          <div class="panel">
+            <h2 class="panel-title" style="font-size: 15px;">
+              👤 Evaluator Demo Accounts
+            </h2>
+            <p style="font-size: 12.5px; color: var(--ink-muted); margin-bottom: 8px;">
+              Click below to instantly populate sign-in credentials for testing different roles:
+            </p>
+            <div class="demo-accounts">
+              <button class="demo-pill" data-email="aarav.demo@campustalk.local" data-password="password123">Aarav (Student - PES)</button>
+              <button class="demo-pill" data-email="meera.demo@campustalk.local" data-password="password123">Meera (Student - RVCE)</button>
+              <button class="demo-pill" data-email="rohan.demo@campustalk.local" data-password="password123">Rohan (Student - PICT)</button>
+              <button class="demo-pill" data-email="sneha.demo@campustalk.local" data-password="password123">Sneha (Prospective)</button>
+              <button class="demo-pill" data-email="admin.demo@campustalk.local" data-password="password123">Admin</button>
+            </div>
+            <div style="font-size: 11px; color: var(--ink-muted); margin-top: 8px;">
+              Standard test password for all seeded accounts: <code>password123</code>
+            </div>
+          </div>
+
+          <!-- Architecture Summary -->
+          <div class="panel">
+            <h2 class="panel-title" style="font-size: 15px;">
+              🗄️ Database Architecture
+            </h2>
+            <ul style="font-size: 13px; color: var(--ink-secondary); padding-left: 18px; line-height: 1.6; margin-top: 8px;">
+              <li><strong>MySQL:</strong> 8 normalized tables with foreign keys, cascaded deletions, and unique constraints.</li>
+              <li><strong>MongoDB:</strong> Flexible student experience review documents with category-specific attributes.</li>
+              <li><strong>Reports:</strong> Live SQL GROUP BY queries and MongoDB aggregation pipelines.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- VIEW 2: COLLEGES DIRECTORY -->
+    <div id="view-colleges" class="view-section hidden">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Colleges &amp; Courses Discovery</h2>
+            <p style="font-size: 13.5px; color: var(--ink-muted); margin-top: 4px;">
+              Explore participating institutions, available degree programs, discussion volumes, and verified student ratings.
+            </p>
+          </div>
+        </div>
+
+        <div id="collegesGrid" class="directory-grid">
+          <p style="color: var(--ink-muted);">Loading colleges directory…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: STUDENT REVIEWS (MONGODB) -->
+    <div id="view-reviews" class="view-section hidden">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              Student Experience Reviews
+              <span class="badge badge-db">MongoDB Document Store</span>
+            </h2>
+            <p style="font-size: 13.5px; color: var(--ink-muted); margin-top: 4px;">
+              Rich, unstructured student feedback stored as flexible BSON documents with category-specific pros, cons, and junior advice.
+            </p>
+          </div>
+          <button class="btn btn-primary" id="btnOpenNewReview">+ Write a Review</button>
+        </div>
+
+        <!-- Summary Statistics from MongoDB Aggregation -->
+        <div id="reviewSummaryStats"></div>
+
+        <!-- Filter bar for reviews -->
+        <div class="toolbar" style="margin-bottom: 20px;">
+          <select id="revFilterCategory" class="select-input" aria-label="Filter reviews by category">
+            <option value="">All Categories</option>
+            <option>Academics</option>
+            <option>Placements</option>
+            <option>Hostels</option>
+            <option>Campus Life</option>
+            <option>Clubs</option>
+            <option>Fees &amp; ROI</option>
+          </select>
+
+          <select id="revFilterRating" class="select-input" aria-label="Filter reviews by minimum rating">
+            <option value="">All Ratings</option>
+            <option value="5">★★★★★ 5 Stars Only</option>
+            <option value="4">★★★★☆ 4 Stars &amp; Above</option>
+            <option value="3">★★★☆☆ 3 Stars &amp; Above</option>
+          </select>
+        </div>
+
+        <div id="reviewsList">
+          <p style="color: var(--ink-muted);">Loading student reviews…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: DBMS REPORTS DASHBOARD -->
+    <div id="view-reports" class="view-section hidden">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              DBMS Project Reports &amp; Live Analytics
+              <span class="badge badge-db">SQL + NoSQL Aggregations</span>
+            </h2>
+            <p style="font-size: 13.5px; color: var(--ink-muted); margin-top: 4px;">
+              Faculty evaluation reports computed directly from database queries. Real aggregate calculations without hardcoded values.
+            </p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="window.CampusTalk.switchView('reports')">🔄 Refresh All Data</button>
+        </div>
+
+        <!-- Report 1 -->
+        <section class="report-section" aria-labelledby="rep1-title">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="rep1-title" style="font-size: 16px; font-weight: 700;">
+              1. College-wise Discussion Activity (MySQL LEFT JOIN &amp; GROUP BY)
+            </h3>
+            <button class="btn btn-secondary btn-sm btn-export-csv" data-report="college-posts">Export CSV</button>
+          </div>
+          <p style="font-size: 12.5px; color: var(--ink-muted); margin-bottom: 10px;">
+            Query joins <code>Colleges &rarr; Courses &rarr; Posts &rarr; Comments/Likes</code> with <code>COUNT(DISTINCT)</code> to prevent cartesian inflation.
+          </p>
+          <div id="rep1Container"></div>
+        </section>
+
+        <!-- Report 2 -->
+        <section class="report-section" aria-labelledby="rep2-title">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="rep2-title" style="font-size: 16px; font-weight: 700;">
+              2. Course-wise Discussion Activity (MySQL Multi-Table Aggregation)
+            </h3>
+            <button class="btn btn-secondary btn-sm btn-export-csv" data-report="course-activity">Export CSV</button>
+          </div>
+          <div id="rep2Container"></div>
+        </section>
+
+        <!-- Report 3 -->
+        <section class="report-section" aria-labelledby="rep3-title">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="rep3-title" style="font-size: 16px; font-weight: 700;">
+              3. Most Discussed Topics &amp; Distribution Share
+            </h3>
+            <button class="btn btn-secondary btn-sm btn-export-csv" data-report="topic-counts">Export CSV</button>
+          </div>
+          <div id="rep3Container"></div>
+        </section>
+
+        <!-- Report 4 -->
+        <section class="report-section" aria-labelledby="rep4-title">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="rep4-title" style="font-size: 16px; font-weight: 700;">
+              4. Most Useful Discussions (Composite Ranking: 2&times;Likes + 3&times;Comments)
+            </h3>
+          </div>
+          <div id="rep4Container"></div>
+        </section>
+
+        <!-- Report 5 -->
+        <section class="report-section" aria-labelledby="rep5-title">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="rep5-title" style="font-size: 16px; font-weight: 700;">
+              5. Average Review Rating by College &amp; Course (MongoDB Pipeline)
+            </h3>
+            <button class="btn btn-secondary btn-sm btn-export-csv" data-report="average-ratings">Export CSV</button>
+          </div>
+          <p style="font-size: 12.5px; color: var(--ink-muted); margin-bottom: 10px;">
+            Computed via MongoDB <code>$group</code> with <code>$avg</code>, <code>$min</code>, <code>$max</code>, and <code>$round</code> operators.
+          </p>
+          <div id="rep5Container"></div>
+        </section>
+
+        <!-- Report 6 -->
+        <section class="report-section" aria-labelledby="rep6-title">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="rep6-title" style="font-size: 16px; font-weight: 700;">
+              6. Review Distribution by College &amp; Category (MongoDB Aggregation)
+            </h3>
+          </div>
+          <div id="rep6Container"></div>
+        </section>
+
+        <!-- Report 7 -->
+        <section class="report-section" aria-labelledby="rep7-title">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="rep7-title" style="font-size: 16px; font-weight: 700;">
+              7. Monthly Activity Timeline (Combined Relational &amp; Document Time-Series)
+            </h3>
+          </div>
+          <div id="rep7Container"></div>
+        </section>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: SIGN IN / REGISTER -->
+  <div id="modalAuth" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalAuthTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-sm active" id="tabLoginBtn" type="button">Sign In</button>
+          <button class="btn btn-sm" id="tabRegisterBtn" type="button">Create Account</button>
+        </div>
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Login Form -->
+        <form id="formLogin">
+          <h2 id="modalAuthTitle" style="font-size: 18px; margin-bottom: 14px;">Sign in to your account</h2>
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" class="form-control" required placeholder="name@domain.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" class="form-control" required placeholder="Enter your password">
+          </div>
+          <div style="margin-bottom: 16px;">
+            <span style="font-size: 12px; color: var(--ink-muted);">Quick demo logins:</span>
+            <div class="demo-accounts" style="margin-top: 4px;">
+              <button type="button" class="demo-pill" data-email="aarav.demo@campustalk.local" data-password="password123">Aarav (Student)</button>
+              <button type="button" class="demo-pill" data-email="sneha.demo@campustalk.local" data-password="password123">Sneha (Prospective)</button>
+              <button type="button" class="demo-pill" data-email="admin.demo@campustalk.local" data-password="password123">Admin</button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="formRegister" hidden>
+          <h2 style="font-size: 18px; margin-bottom: 14px;">Join CampusTalk</h2>
+          <div class="form-group">
+            <label class="form-label" for="regName">Full Name</label>
+            <input type="text" id="regName" class="form-control" required placeholder="e.g. Priyanshu Sharma">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regEmail">Email Address</label>
+            <input type="email" id="regEmail" class="form-control" required placeholder="student@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Password (Min. 6 characters)</label>
+            <input type="password" id="regPassword" class="form-control" required minlength="6" placeholder="Choose a password">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regRole">Student Status</label>
+            <select id="regRole" class="form-control">
+              <option value="prospective_student">Prospective Student (Researching colleges)</option>
+              <option value="current_student">Current Student (Enrolled in a college)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regYear">Academic Year (Optional)</label>
+            <input type="text" id="regYear" class="form-control" placeholder="e.g. 2nd Year, 2026 Aspirant">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ASK A QUESTION / NEW POST -->
+  <div id="modalNewPost" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalNewPostTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="modalNewPostTitle" class="modal-title">Ask a College Question</h2>
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="formNewPost">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="newPostCourse">Select College &amp; Course</label>
+            <select id="newPostCourse" class="form-control" required>
+              <option value="">Loading courses…</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newPostTitle">Question Title</label>
+            <input type="text" id="newPostTitle" class="form-control" required maxlength="200" placeholder="e.g. How is the placement assistance for ISE students?">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newPostTopic">Discussion Category</label>
+            <select id="newPostTopic" class="form-control" required>
+              <option value="Academics">Academics</option>
+              <option value="Placements">Placements</option>
+              <option value="Hostels">Hostels</option>
+              <option value="Campus Life">Campus Life</option>
+              <option value="Clubs">Clubs</option>
+              <option value="Admissions">Admissions</option>
+              <option value="Faculty">Faculty</option>
+              <option value="Fees &amp; ROI">Fees &amp; ROI</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newPostContent">Details &amp; Context</label>
+            <textarea id="newPostContent" class="form-control" required rows="4" placeholder="Provide background information so current students can give concrete answers…"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Publish Discussion</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT POST -->
+  <div id="modalEditPost" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalEditPostTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="modalEditPostTitle" class="modal-title">Edit Discussion</h2>
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="formEditPost">
+        <input type="hidden" id="editPostId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="editPostTitle">Title</label>
+            <input type="text" id="editPostTitle" class="form-control" required maxlength="200">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editPostTopic">Category</label>
+            <select id="editPostTopic" class="form-control" required>
+              <option value="Academics">Academics</option>
+              <option value="Placements">Placements</option>
+              <option value="Hostels">Hostels</option>
+              <option value="Campus Life">Campus Life</option>
+              <option value="Clubs">Clubs</option>
+              <option value="Admissions">Admissions</option>
+              <option value="Faculty">Faculty</option>
+              <option value="Fees &amp; ROI">Fees &amp; ROI</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editPostContent">Content</label>
+            <textarea id="editPostContent" class="form-control" required rows="5"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: WRITE REVIEW (MONGODB) -->
+  <div id="modalNewReview" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalNewReviewTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="modalNewReviewTitle" class="modal-title">Write a Student Review (MongoDB)</h2>
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="formNewReview">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="reviewCollege">College Name</label>
+            <input type="text" id="reviewCollege" class="form-control" required placeholder="e.g. PES University">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reviewCourse">Course &amp; Branch</label>
+            <input type="text" id="reviewCourse" class="form-control" required placeholder="e.g. B.Tech Computer Science and Engineering">
+          </div>
+          <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label class="form-label" for="reviewCategory">Review Category</label>
+              <select id="reviewCategory" class="form-control" required>
+                <option value="Academics">Academics</option>
+                <option value="Placements">Placements</option>
+                <option value="Hostels">Hostels</option>
+                <option value="Campus Life">Campus Life</option>
+                <option value="Clubs">Clubs</option>
+                <option value="Fees &amp; ROI">Fees &amp; ROI</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="reviewRating">Overall Rating</label>
+              <select id="reviewRating" class="form-control" required>
+                <option value="5">★★★★★ 5 - Excellent</option>
+                <option value="4">★★★★☆ 4 - Good</option>
+                <option value="3">★★★☆☆ 3 - Average</option>
+                <option value="2">★★☆☆☆ 2 - Below Average</option>
+                <option value="1">★☆☆☆☆ 1 - Poor</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reviewTitle">Review Summary / Headline</label>
+            <input type="text" id="reviewTitle" class="form-control" placeholder="e.g. High academic rigor with top-notch placements">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reviewText">Detailed Experience</label>
+            <textarea id="reviewText" class="form-control" required rows="3" placeholder="Share specific details about faculty, exams, atmosphere…"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reviewPros">Key Strengths (Pros)</label>
+            <input type="text" id="reviewPros" class="form-control" placeholder="e.g. Industry curriculum, hackathons">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reviewCons">Drawbacks (Cons)</label>
+            <input type="text" id="reviewCons" class="form-control" placeholder="e.g. Strict attendance, heavy internal workload">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reviewAdvice">Advice to Prospective Juniors</label>
+            <input type="text" id="reviewAdvice" class="form-control" placeholder="e.g. Start LeetCode early and build good rapport with professors">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Review in MongoDB</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: USER PROFILE -->
+  <div id="modalProfile" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modalProfileTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="modalProfileTitle" class="modal-title">Student Profile</h2>
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <form id="formProfile">
+        <div class="modal-body">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-sm);">
+            <div>
+              <div style="font-size: 12px; color: var(--ink-muted);">Role</div>
+              <strong id="profileRole">Student</strong>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: var(--ink-muted);">Discussions Created</div>
+              <strong id="profilePostsCount">0</strong>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: var(--ink-muted);">Comments Contributed</div>
+              <strong id="profileCommentsCount">0</strong>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profileName">Full Name</label>
+            <input type="text" id="profileName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profileEmail">Email</label>
+            <input type="email" id="profileEmail" class="form-control" disabled style="background:#e2e8f0;">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profileYear">Academic Year</label>
+            <input type="text" id="profileYear" class="form-control" placeholder="e.g. 3rd Year, Class of 2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profileCourse">Enrolled Course (Optional)</label>
+            <select id="profileCourse" class="form-control">
+              <option value="">No college course linked</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profileBio">Bio</label>
+            <textarea id="profileBio" class="form-control" rows="2" placeholder="Tell other students about your interests…"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profileInterests">Interests</label>
+            <input type="text" id="profileInterests" class="form-control" placeholder="e.g. Web Development, Robotics, Cloud">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Area (Screen Reader Live Region) -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-links">
+      <a href="#" onclick="window.CampusTalk.switchView('discussions'); return false;">Discussions</a>
+      <a href="#" onclick="window.CampusTalk.switchView('colleges'); return false;">Colleges</a>
+      <a href="#" onclick="window.CampusTalk.switchView('reviews'); return false;">Reviews (MongoDB)</a>
+      <a href="#" onclick="window.CampusTalk.switchView('reports'); return false;">Reports (SQL)</a>
+    </div>
+    <p>
+      CampusTalk &middot; University DBMS Laboratory Evaluation Project &middot; MySQL 8.0 &amp; MongoDB Dual-Store Architecture
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
