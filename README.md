@@ -55,6 +55,7 @@ CampusTalk organizes questions, answers, and reviews under a structured hierarch
 ```
 
 For complete database schema and documentation, see:
+* [Project Report](docs/PROJECT_REPORT.md) &mdash; Formal PES University DBMS Project Report (UE23CS351A).
 * [ER Diagram](docs/ER_DIAGRAM.md) &mdash; Mermaid notation ER diagram with cardinalities.
 * [Relational Schema](docs/RELATIONAL_SCHEMA.md) &mdash; 1NF, 2NF, 3NF, BCNF proofs and constraint catalog.
 * [Database Design](docs/DATABASE_DESIGN.md) &mdash; Polyglot persistence, consistency strategy, and failure handling.
