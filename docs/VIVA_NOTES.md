@@ -65,3 +65,9 @@ CampusTalk is a full-stack, polyglot persistence discussion and student-review p
 1. **Self-declared roles:** In this lab prototype, students select their role upon registration. A production deployment would require `.edu` institutional email domain verification.
 2. **Search scaling:** Search currently uses parameterized SQL `LIKE` and compound indexes. High-throughput enterprise scaling would employ a dedicated inverted index engine like Elasticsearch or Meilisearch.
 3. **Dual-store consistency:** Coordinated via application logic (eventual consistency) rather than a heavy distributed 2-Phase Commit (2PC) to maintain sub-10ms response times.
+
+### 13. How does the Database Health & Statistics Dashboard collect real-time metrics?
+- **MySQL 8.0:** Queries `information_schema.TABLES` for data and index sizes, executes exact `SELECT COUNT(*)` for authoritative record counts, and inspects `SHOW GLOBAL STATUS` for `Threads_connected`, `Uptime`, and `Questions`.
+- **MongoDB 7.0:** Runs `dbStats` for allocated disk storage and index sizing, calls `listCollections()` and `countDocuments({})` for exact collection documents, and aggregates review categories.
+- **Probe Latencies:** High-precision timers (`performance.now()`) measure round-trip probe speeds for both databases independently.
+- **Security & Authorization:** All telemetry routes (`/api/admin/database/*`) are locked behind JWT authentication and role-based checks (`requireRole('admin')`), ensuring administrative metrics are never exposed to standard student accounts or unauthenticated users.

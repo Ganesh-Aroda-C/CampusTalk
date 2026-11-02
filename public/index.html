@@ -90,6 +90,15 @@
           <span class="nav-label">Settings</span>
         </button>
 
+        <!-- Admin Only: Database Status Navigation -->
+        <button class="nav-item" data-view="database-status" id="sidebarNavDbStatus" aria-label="Database Status and Performance" style="display: none;">
+          <span class="nav-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </span>
+          <span class="nav-label">Database Status</span>
+          <span class="badge-admin" style="font-size: 9px; padding: 1px 5px; margin-left: auto;">Admin</span>
+        </button>
+
         <button class="btn-sidebar-ask" id="btnSidebarAsk" aria-label="Ask a question">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span>Ask a Question</span>
@@ -349,6 +358,225 @@
           </p>
           <button class="btn btn-primary btn-sm" id="btnOpenReportsModal">View DBMS Reports &amp; Analytics</button>
         </div>
+
+        <!-- Administrator Tools Widget (Visible to Admins) -->
+        <div class="rail-widget" id="settingsAdminWidget" style="margin-bottom: 16px;" hidden>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px;">
+            <h2 style="font-size: 15px; font-weight: 700; margin:0;">Database Status &amp; Performance</h2>
+            <span class="badge-admin">Admin</span>
+          </div>
+          <p style="font-size: 13px; color: var(--ink-muted); margin-bottom: 12px;">
+            Inspect live MySQL 8.0 and MongoDB 7.0 connection health, table storage, query latencies, and operational telemetry.
+          </p>
+          <button class="btn btn-primary btn-sm" id="btnOpenDbStatusFromSettings">Launch Database Dashboard</button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           VIEW 9: DATABASE STATUS (ADMIN ONLY)
+           ========================================== -->
+      <section id="view-database-status" class="main-column wide view-container" hidden aria-labelledby="dbStatusTitle">
+        <!-- Dashboard Header -->
+        <div class="db-header-bar">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h1 id="dbStatusTitle" class="page-title" style="margin:0;">Database Status &amp; Performance</h1>
+              <span class="badge-admin">Admin Dashboard</span>
+            </div>
+            <p class="page-subtitle" style="margin-top:4px;">
+              Live health, connection status, table allocations, and storage telemetry from MySQL and MongoDB.
+            </p>
+          </div>
+          <div class="db-header-actions">
+            <div class="db-auto-refresh-indicator" id="dbAutoRefreshBadge" title="Polling every 30 seconds">
+              <span class="pulse-dot" id="dbPulseDot"></span>
+              <span id="dbAutoRefreshCountdown">Auto-refresh: 30s</span>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnRefreshDbStatus" aria-label="Refresh database statistics">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="dbRefreshIcon"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Non-Admin Gate (if unauthorized user tries to view) -->
+        <div id="dbStatusAuthGate" hidden class="db-card" style="text-align: center; padding: 48px 24px; margin-bottom: 24px;">
+          <div style="font-size: 36px; margin-bottom: 12px;">🔒</div>
+          <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Administrator Access Required</h2>
+          <p style="color: var(--ink-secondary); font-size: 14px; max-width: 480px; margin: 0 auto 20px;">
+            This dashboard queries live database engine internals and system tables. Please sign in with an administrative account to view.
+          </p>
+          <button class="btn btn-primary" id="btnDbQuickAdminLogin">Sign In as Admin Demo</button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="dbStatusLoading" class="db-card" style="text-align: center; padding: 40px; color: var(--ink-muted); margin-bottom: 24px;">
+          <p style="font-size: 14px; font-weight: 600;">Connecting to MySQL &amp; MongoDB telemetry…</p>
+        </div>
+
+        <!-- Main Dashboard Content (when authenticated and loaded) -->
+        <div id="dbStatusContent" hidden>
+          
+          <!-- 1. Overall Health Banner -->
+          <div class="db-health-banner" id="dbOverallBanner">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- 2. Top Metric Cards Grid (MySQL, MongoDB, Combined Storage) -->
+          <div class="db-grid-3" id="dbTopCardsGrid">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- 3. Real-Time Comparison Table -->
+          <div class="db-card" style="margin-bottom: 24px;">
+            <div class="db-card-header">
+              <div>
+                <h2 class="db-card-title">Polyglot Database Architecture Comparison</h2>
+                <p class="db-card-subtitle">Side-by-side comparison of relational vs document store telemetry.</p>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="db-table" id="dbComparisonTable">
+                <!-- Populated dynamically -->
+              </table>
+            </div>
+          </div>
+
+          <!-- 4. Visual Charts & Storage Footprint Grid -->
+          <div class="db-grid-2" style="margin-bottom: 24px;">
+            <!-- Chart 1: MySQL Table Distribution -->
+            <div class="db-card">
+              <div class="db-card-header">
+                <div>
+                  <h2 class="db-card-title">MySQL Table Record Distribution</h2>
+                  <p class="db-card-subtitle">Exact row counts across relational schema tables.</p>
+                </div>
+                <span class="db-badge-pill" id="mysqlTotalRowsBadge">0 Rows</span>
+              </div>
+              <div id="mysqlDistributionChart" class="db-prog-container">
+                <!-- Horizontal proportional bars -->
+              </div>
+            </div>
+
+            <!-- Chart 2: MongoDB Document & Category Distribution -->
+            <div class="db-card">
+              <div class="db-card-header">
+                <div>
+                  <h2 class="db-card-title">MongoDB Reviews by Category</h2>
+                  <p class="db-card-subtitle">Document aggregation across review topics.</p>
+                </div>
+                <span class="db-badge-pill" id="mongoTotalDocsBadge">0 Docs</span>
+              </div>
+              <div id="mongoDistributionChart" class="db-prog-container">
+                <!-- Horizontal proportional bars -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Storage Comparison & Latency Breakdown Grid -->
+          <div class="db-grid-2" style="margin-bottom: 24px;">
+            <!-- Chart 3: Storage Comparison -->
+            <div class="db-card">
+              <div class="db-card-header">
+                <div>
+                  <h2 class="db-card-title">Database Storage Footprint</h2>
+                  <p class="db-card-subtitle">Disk allocation comparison (Data + Indexes).</p>
+                </div>
+                <span class="db-badge-pill" id="dbCombinedStorageBadge">0 KB Total</span>
+              </div>
+              <div id="storageComparisonChart" style="padding: 6px 0;">
+                <!-- Dual stacked bar -->
+              </div>
+            </div>
+
+            <!-- Chart 4: Latency & Response Time -->
+            <div class="db-card">
+              <div class="db-card-header">
+                <div>
+                  <h2 class="db-card-title">Query Latency &amp; Response Time</h2>
+                  <p class="db-card-subtitle">Round-trip database ping latency in milliseconds.</p>
+                </div>
+                <span class="db-badge-pill" id="latencyRatingBadge">Sub-5ms</span>
+              </div>
+              <div id="latencyComparisonChart" style="padding: 6px 0;">
+                <!-- Latency meters -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Detailed MySQL Tables Specification Panel -->
+          <div class="db-card" style="margin-bottom: 24px;">
+            <div class="db-card-header">
+              <div>
+                <h2 class="db-card-title">MySQL 8.0 Relational Tables Catalog</h2>
+                <p class="db-card-subtitle">Table schema metadata, exact record counts, and index allocations.</p>
+              </div>
+              <div style="font-size: 13px; color: var(--ink-secondary);" id="mysqlRuntimeMeta">
+                <!-- Uptime, Threads, Version -->
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="db-table" id="mysqlTablesList">
+                <thead>
+                  <tr>
+                    <th>Table Name</th>
+                    <th>Schema Role</th>
+                    <th style="text-align:right;">Exact Rows</th>
+                    <th style="text-align:right;">Data Size</th>
+                    <th style="text-align:right;">Index Size</th>
+                    <th style="text-align:right;">Total Footprint</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 7. Detailed MongoDB Collections Specification Panel -->
+          <div class="db-card" style="margin-bottom: 24px;">
+            <div class="db-card-header">
+              <div>
+                <h2 class="db-card-title">MongoDB Document Collections &amp; Indexes</h2>
+                <p class="db-card-subtitle">WiredTiger storage metrics, document counts, and index specifications.</p>
+              </div>
+              <div style="font-size: 13px; color: var(--ink-secondary);" id="mongoRuntimeMeta">
+                <!-- Version, Storage engine -->
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="db-table" id="mongoCollectionsList">
+                <thead>
+                  <tr>
+                    <th>Collection Name</th>
+                    <th>Storage Type</th>
+                    <th style="text-align:right;">Documents</th>
+                    <th style="text-align:right;">Data Size</th>
+                    <th style="text-align:right;">Storage Size</th>
+                    <th style="text-align:right;">Index Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 8. Telemetry Diagnostics Footer -->
+          <div class="db-footer-status">
+            <div>
+              <span>Telemetry source: <strong>Direct Database Connection Pool &amp; Driver</strong></span>
+              &middot;
+              <span id="dbLastCheckedTime">Last checked: Never</span>
+            </div>
+            <div>
+              <button class="btn btn-secondary btn-sm" id="btnCopyDbDiagnostics">Copy Diagnostics JSON</button>
+            </div>
+          </div>
+
+        </div>
       </section>
 
     </main>
@@ -390,7 +618,7 @@
       </div>
 
       <div class="rail-footer-links">
-        <div><a href="#" id="railDbmsLink">DBMS Evaluation Insights</a> &middot; <a href="#" id="railHelpLink">FAQ</a></div>
+        <div><a href="#" id="railDbmsLink">DBMS Reports</a> &middot; <a href="#" id="railDbStatusLink">Database Status</a> &middot; <a href="#" id="railHelpLink">FAQ</a></div>
         <div style="margin-top: 4px;">&copy; 2026 CampusTalk &middot; University Project</div>
       </div>
     </aside>

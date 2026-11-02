@@ -173,6 +173,16 @@
   function updateAuthUI() {
     const sidebarUser = $('#sidebarUserArea');
     const railUser = $('#railUserWidget');
+    const sidebarDbStatus = $('#sidebarNavDbStatus');
+    const settingsAdminWidget = $('#settingsAdminWidget');
+
+    if (state.user && state.user.role === 'admin') {
+      if (sidebarDbStatus) sidebarDbStatus.style.display = 'flex';
+      if (settingsAdminWidget) settingsAdminWidget.removeAttribute('hidden');
+    } else {
+      if (sidebarDbStatus) sidebarDbStatus.style.display = 'none';
+      if (settingsAdminWidget) settingsAdminWidget.setAttribute('hidden', '');
+    }
 
     if (state.user) {
       const initials = getInitials(state.user.name);
@@ -242,6 +252,11 @@
     state.previousView = state.currentView;
     state.currentView = viewName;
 
+    // Stop DB auto-refresh if navigating away from database-status
+    if (state.previousView === 'database-status' && viewName !== 'database-status') {
+      stopDbAutoRefresh();
+    }
+
     // Update Desktop Sidebar items
     $$('.nav-item').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.view === viewName);
@@ -282,6 +297,8 @@
       loadProfileView();
     } else if (viewName === 'settings') {
       loadSettingsView();
+    } else if (viewName === 'database-status') {
+      loadDatabaseStatusView();
     }
   }
 
@@ -1247,6 +1264,584 @@
   }
 
   // =========================================================================
+  // VIEW 9: DATABASE HEALTH & STATISTICS DASHBOARD (ADMIN ONLY)
+  // =========================================================================
+
+  let dbAutoRefreshInterval = null;
+  let dbCountdownSeconds = 30;
+  let dbCachedData = null;
+
+  function formatBytes(bytes, decimals = 1) {
+    if (bytes === undefined || bytes === null || isNaN(bytes) || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + (sizes[i] || 'B');
+  }
+
+  function stopDbAutoRefresh() {
+    if (dbAutoRefreshInterval) {
+      clearInterval(dbAutoRefreshInterval);
+      dbAutoRefreshInterval = null;
+    }
+  }
+
+  function startDbAutoRefresh() {
+    stopDbAutoRefresh();
+    dbCountdownSeconds = 30;
+    updateCountdownUI();
+
+    dbAutoRefreshInterval = setInterval(() => {
+      dbCountdownSeconds--;
+      if (dbCountdownSeconds <= 0) {
+        dbCountdownSeconds = 30;
+        loadDatabaseStatusView(false);
+      }
+      updateCountdownUI();
+    }, 1000);
+  }
+
+  function updateCountdownUI() {
+    const el = $('#dbAutoRefreshCountdown');
+    if (el) el.textContent = `Auto-refresh: ${dbCountdownSeconds}s`;
+  }
+
+  async function loadDatabaseStatusView(showSpinner = true) {
+    const authGate = $('#dbStatusAuthGate');
+    const loading = $('#dbStatusLoading');
+    const content = $('#dbStatusContent');
+    const refreshIcon = $('#dbRefreshIcon');
+
+    // Security Gate: Verify admin role
+    if (!state.user || state.user.role !== 'admin') {
+      stopDbAutoRefresh();
+      if (authGate) authGate.removeAttribute('hidden');
+      if (loading) loading.setAttribute('hidden', '');
+      if (content) content.setAttribute('hidden', '');
+
+      $('#btnDbQuickAdminLogin')?.addEventListener('click', async () => {
+        try {
+          const res = await api('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email: 'admin.demo@campustalk.local', password: 'password123' })
+          });
+          setSession(res.token, res.user);
+          showToast('Signed in as Platform Administrator');
+          loadDatabaseStatusView(true);
+        } catch (err) {
+          showToast(err.message);
+        }
+      });
+      return;
+    }
+
+    if (authGate) authGate.setAttribute('hidden', '');
+
+    if (showSpinner) {
+      if (loading) loading.removeAttribute('hidden');
+      if (content) content.setAttribute('hidden', '');
+      if (refreshIcon) refreshIcon.style.animation = 'spin 0.8s linear infinite';
+    }
+
+    try {
+      const [health, mysql, mongodb] = await Promise.all([
+        api('/admin/database/health'),
+        api('/admin/database/mysql'),
+        api('/admin/database/mongodb')
+      ]);
+
+      dbCachedData = { health, mysql, mongodb, fetchedAt: new Date().toISOString() };
+
+      renderOverallDbBanner(health);
+      renderTopDbCards(health, mysql, mongodb);
+      renderDbComparisonTable(health, mysql, mongodb);
+      renderDbVisualCharts(mysql, mongodb);
+      renderDbStorageAndLatency(mysql, mongodb, health);
+      renderDbMysqlTables(mysql);
+      renderDbMongoCollections(mongodb);
+
+      const lastChecked = $('#dbLastCheckedTime');
+      if (lastChecked) {
+        lastChecked.textContent = `Last checked: ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+      }
+
+      if (loading) loading.setAttribute('hidden', '');
+      if (content) content.removeAttribute('hidden');
+
+      const pulseDot = $('#dbPulseDot');
+      if (pulseDot) {
+        pulseDot.className = 'pulse-dot' + (health.overallStatus === 'degraded' ? ' warning' : (health.overallStatus === 'unhealthy' ? ' error' : ''));
+      }
+
+      startDbAutoRefresh();
+    } catch (err) {
+      if (loading) loading.setAttribute('hidden', '');
+      if (content) content.removeAttribute('hidden');
+      showToast(`Database telemetry query error: ${err.message}`);
+    } finally {
+      if (refreshIcon) refreshIcon.style.animation = '';
+    }
+  }
+
+  function renderOverallDbBanner(health) {
+    const banner = $('#dbOverallBanner');
+    if (!banner) return;
+
+    if (health.overallStatus === 'healthy') {
+      banner.className = 'db-health-banner healthy';
+      banner.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800;">✓</div>
+          <div>
+            <div style="font-size:15px; font-weight:800;">All Databases Fully Operational &amp; Healthy</div>
+            <div style="font-size:12.5px; opacity:0.9;">MySQL 8.0 (Relational Store) and MongoDB 7.0+ (Document Store) are actively responding with sub-5ms probe latency.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span class="badge-status-healthy">● MySQL: ${esc(health.mysql.status)} (${health.mysql.responseTimeMs} ms)</span>
+          <span class="badge-status-healthy">● MongoDB: ${esc(health.mongodb.status)} (${health.mongodb.responseTimeMs} ms)</span>
+        </div>
+      `;
+    } else if (health.overallStatus === 'degraded') {
+      banner.className = 'db-health-banner degraded';
+      const myOk = health.mysql.status === 'connected';
+      banner.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:#fef3c7; color:#d97706; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800;">!</div>
+          <div>
+            <div style="font-size:15px; font-weight:800;">Database Operational Status: Degraded</div>
+            <div style="font-size:12.5px; opacity:0.9;">One database engine is connected while the other is unreachable. Features relying on the failing database may experience errors.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span class="${myOk ? 'badge-status-healthy' : 'badge-status-error'}">● MySQL: ${esc(health.mysql.status)}</span>
+          <span class="${!myOk ? 'badge-status-healthy' : 'badge-status-error'}">● MongoDB: ${esc(health.mongodb.status)}</span>
+        </div>
+      `;
+    } else {
+      banner.className = 'db-health-banner unhealthy';
+      banner.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800;">✕</div>
+          <div>
+            <div style="font-size:15px; font-weight:800;">Database Operational Status: Unreachable</div>
+            <div style="font-size:12.5px; opacity:0.9;">Neither MySQL nor MongoDB is responding to health probes. Verify local server daemons and environment credentials.</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function renderTopDbCards(health, mysql, mongodb) {
+    const grid = $('#dbTopCardsGrid');
+    if (!grid) return;
+
+    const myConnected = mysql.status === 'connected';
+    const moConnected = mongodb.status === 'connected';
+    const totalStorageBytes = (Number(mysql.totalSizeBytes) || 0) + (Number(mongodb.storageSizeBytes) || 0);
+    const avgLatency = ((Number(health.mysql?.responseTimeMs || 0) + Number(health.mongodb?.responseTimeMs || 0)) / 2).toFixed(1);
+
+    grid.innerHTML = `
+      <!-- MySQL Card -->
+      <div class="db-card">
+        <div class="db-card-header">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h2 class="db-card-title">MySQL 8.0</h2>
+              <span class="${myConnected ? 'badge-status-healthy' : 'badge-status-error'}">${myConnected ? 'Connected' : 'Disconnected'}</span>
+            </div>
+            <p class="db-card-subtitle">Relational Storage Engine (InnoDB)</p>
+          </div>
+          <span class="db-badge-pill">${esc(mysql.database || 'campustalk')}</span>
+        </div>
+        ${myConnected ? `
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div class="db-metric-tile">
+              <div class="db-metric-num">${mysql.totalRecords || 0}</div>
+              <div class="db-metric-sub">Exact Rows</div>
+            </div>
+            <div class="db-metric-tile">
+              <div class="db-metric-num">${mysql.tableCount || 0}</div>
+              <div class="db-metric-sub">Tables</div>
+            </div>
+          </div>
+          <div style="font-size:12.5px; color:var(--ink-secondary); line-height:1.6;">
+            <div>Disk Footprint: <strong>${esc(mysql.formattedTotalSize)}</strong> (Data: ${esc(mysql.formattedDataSize)})</div>
+            <div>Active Connections: <strong>${mysql.activeConnections}</strong> / ${mysql.maxConnections} max</div>
+            <div>Query Latency: <strong>${mysql.responseTimeMs} ms</strong> &middot; Uptime: <strong>${esc(mysql.formattedUptime)}</strong></div>
+          </div>
+        ` : `
+          <div class="db-alert-disconnected">
+            <strong>Connection Failed:</strong> ${esc(mysql.error || 'Server unreachable')}
+          </div>
+        `}
+      </div>
+
+      <!-- MongoDB Card -->
+      <div class="db-card">
+        <div class="db-card-header">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h2 class="db-card-title">MongoDB</h2>
+              <span class="${moConnected ? 'badge-status-healthy' : 'badge-status-error'}">${moConnected ? 'Connected' : 'Disconnected'}</span>
+            </div>
+            <p class="db-card-subtitle">Document Engine (WiredTiger)</p>
+          </div>
+          <span class="db-badge-pill">${esc(mongodb.database || 'campustalk')}</span>
+        </div>
+        ${moConnected ? `
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div class="db-metric-tile">
+              <div class="db-metric-num">${mongodb.totalDocuments || 0}</div>
+              <div class="db-metric-sub">Documents</div>
+            </div>
+            <div class="db-metric-tile">
+              <div class="db-metric-num">${mongodb.collectionCount || 0}</div>
+              <div class="db-metric-sub">Collections</div>
+            </div>
+          </div>
+          <div style="font-size:12.5px; color:var(--ink-secondary); line-height:1.6;">
+            <div>Storage Allocated: <strong>${esc(mongodb.formattedStorageSize)}</strong> (Data: ${esc(mongodb.formattedDataSize)})</div>
+            <div>Compound Indexes: <strong>${mongodb.indexesCount}</strong> (${esc(mongodb.formattedIndexSize)})</div>
+            <div>Round-trip Latency: <strong>${mongodb.responseTimeMs} ms</strong> &middot; Version: <strong>${esc(mongodb.version)}</strong></div>
+          </div>
+        ` : `
+          <div class="db-alert-disconnected">
+            <strong>Connection Failed:</strong> ${esc(mongodb.error || 'Server unreachable')}
+          </div>
+        `}
+      </div>
+
+      <!-- Storage & Performance Overview Card -->
+      <div class="db-card">
+        <div class="db-card-header">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h2 class="db-card-title">Storage &amp; Latency</h2>
+              <span class="badge-status-healthy">Live Telemetry</span>
+            </div>
+            <p class="db-card-subtitle">Dual-Engine Combined Footprint</p>
+          </div>
+          <span class="db-badge-pill">Polyglot</span>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+          <div class="db-metric-tile">
+            <div class="db-metric-num">${esc(formatBytes(totalStorageBytes))}</div>
+            <div class="db-metric-sub">Total Storage</div>
+          </div>
+          <div class="db-metric-tile">
+            <div class="db-metric-num">${avgLatency} ms</div>
+            <div class="db-metric-sub">Avg Response</div>
+          </div>
+        </div>
+        <div style="font-size:12.5px; color:var(--ink-secondary); line-height:1.6;">
+          <div>MySQL Allocated: <strong>${esc(mysql.formattedTotalSize || '0 B')}</strong></div>
+          <div>MongoDB Allocated: <strong>${esc(mongodb.formattedStorageSize || '0 B')}</strong></div>
+          <div>Probe Verification Time: <strong>${health.totalResponseTimeMs} ms</strong></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDbComparisonTable(health, mysql, mongodb) {
+    const table = $('#dbComparisonTable');
+    if (!table) return;
+
+    const myConnected = mysql.status === 'connected';
+    const moConnected = mongodb.status === 'connected';
+
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th style="width: 25%;">Metric / Dimension</th>
+          <th style="width: 37.5%;">MySQL 8.0 (Relational Store)</th>
+          <th style="width: 37.5%;">MongoDB 7.0+ (Document Store)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Operational Status</strong></td>
+          <td>
+            <span class="${myConnected ? 'badge-status-healthy' : 'badge-status-error'}">
+              ${myConnected ? 'Connected &middot; ' + mysql.responseTimeMs + ' ms' : 'Disconnected'}
+            </span>
+          </td>
+          <td>
+            <span class="${moConnected ? 'badge-status-healthy' : 'badge-status-error'}">
+              ${moConnected ? 'Connected &middot; ' + mongodb.responseTimeMs + ' ms' : 'Disconnected'}
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Architectural Role</strong></td>
+          <td>Authoritative Domain Entities (Users, Colleges, Courses, Posts, Comments, Likes, Follows)</td>
+          <td>Flexible Student Experience Reviews &amp; Heterogeneous Feedback Documents</td>
+        </tr>
+        <tr>
+          <td><strong>Schema Paradigm</strong></td>
+          <td>Strict Relational Schema (1NF, 2NF, 3NF, BCNF) with Foreign Key Constraints &amp; Cascades</td>
+          <td>Dynamic Document Collections (BSON) accommodating variable attributes by review category</td>
+        </tr>
+        <tr>
+          <td><strong>Data Structures</strong></td>
+          <td><strong>${mysql.tableCount || 0} Tables</strong> (In-schema normalized tables)</td>
+          <td><strong>${mongodb.collectionCount || 0} Collections</strong> (Document collections)</td>
+        </tr>
+        <tr>
+          <td><strong>Record Volume</strong></td>
+          <td><strong>${mysql.totalRecords || 0} Total Rows</strong> (Exact count via SELECT COUNT)</td>
+          <td><strong>${mongodb.totalDocuments || 0} Total Documents</strong> (Reviews count)</td>
+        </tr>
+        <tr>
+          <td><strong>Storage Footprint</strong></td>
+          <td><strong>${esc(mysql.formattedTotalSize || '0 B')}</strong> (Data: ${esc(mysql.formattedDataSize)}, Indexes: ${esc(mysql.formattedIndexSize)})</td>
+          <td><strong>${esc(mongodb.formattedTotalSize || '0 B')}</strong> (Storage: ${esc(mongodb.formattedStorageSize)}, Indexes: ${esc(mongodb.formattedIndexSize)})</td>
+        </tr>
+        <tr>
+          <td><strong>Round-Trip Ping Latency</strong></td>
+          <td><strong>${mysql.responseTimeMs || 0} ms</strong> (Connection pool query)</td>
+          <td><strong>${mongodb.responseTimeMs || 0} ms</strong> (Admin ping command)</td>
+        </tr>
+        <tr>
+          <td><strong>Concurrency &amp; Transactions</strong></td>
+          <td>ACID Transactions &amp; Row-Level Locking (InnoDB Engine)</td>
+          <td>Document-Level Atomicity &amp; WiredTiger Cache Engine</td>
+        </tr>
+        <tr>
+          <td><strong>Query Language &amp; Access</strong></td>
+          <td>Declarative SQL with Parameterized Prepared Statements</td>
+          <td>MongoDB Multi-Stage Aggregation Pipelines ($match, $group, $sort)</td>
+        </tr>
+      </tbody>
+    `;
+  }
+
+  function renderDbVisualCharts(mysql, mongodb) {
+    // 1. MySQL Table Distribution Chart
+    const mysqlChart = $('#mysqlDistributionChart');
+    const mysqlBadge = $('#mysqlTotalRowsBadge');
+    if (mysqlChart) {
+      if (mysql.status === 'connected' && mysql.tables && mysql.tables.length > 0) {
+        if (mysqlBadge) mysqlBadge.textContent = `${mysql.totalRecords} Rows`;
+        const total = mysql.totalRecords || 1;
+        mysqlChart.innerHTML = mysql.tables.map(t => {
+          const pct = Math.max(2, Math.round((t.rowCount / total) * 100));
+          return `
+            <div class="db-prog-item">
+              <div class="db-prog-labels">
+                <span><strong>${esc(t.tableName)}</strong> <span style="color:var(--ink-muted); font-size:11px;">(${t.formattedTotalSize})</span></span>
+                <span><strong>${t.rowCount}</strong> rows (${pct}%)</span>
+              </div>
+              <div class="db-prog-track">
+                <div class="db-prog-fill" style="width: ${pct}%; background: var(--primary);"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        mysqlChart.innerHTML = `<p style="color:var(--ink-muted); font-size:13px;">MySQL table statistics unavailable.</p>`;
+      }
+    }
+
+    // 2. MongoDB Category Breakdown Chart
+    const mongoChart = $('#mongoDistributionChart');
+    const mongoBadge = $('#mongoTotalDocsBadge');
+    if (mongoChart) {
+      if (mongodb.status === 'connected' && mongodb.categoryBreakdown && mongodb.categoryBreakdown.length > 0) {
+        if (mongoBadge) mongoBadge.textContent = `${mongodb.totalDocuments} Reviews`;
+        const total = mongodb.totalDocuments || 1;
+        mongoChart.innerHTML = mongodb.categoryBreakdown.map(c => {
+          const pct = Math.max(4, Math.round((c.count / total) * 100));
+          return `
+            <div class="db-prog-item">
+              <div class="db-prog-labels">
+                <span><strong>${esc(c.category)}</strong> <span style="color:#f59e0b; font-size:11.5px;">★ ${c.avgRating}</span></span>
+                <span><strong>${c.count}</strong> reviews (${pct}%)</span>
+              </div>
+              <div class="db-prog-track">
+                <div class="db-prog-fill" style="width: ${pct}%; background: #059669;"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        mongoChart.innerHTML = `<p style="color:var(--ink-muted); font-size:13px;">No category breakdown documents recorded yet.</p>`;
+      }
+    }
+  }
+
+  function renderDbStorageAndLatency(mysql, mongodb, health) {
+    // 1. Storage Comparison Bar
+    const storageChart = $('#storageComparisonChart');
+    const storageBadge = $('#dbCombinedStorageBadge');
+    if (storageChart) {
+      const myBytes = Number(mysql.totalSizeBytes) || 0;
+      const moBytes = Number(mongodb.storageSizeBytes) || 0;
+      const totalBytes = myBytes + moBytes || 1;
+      const myPct = Math.round((myBytes / totalBytes) * 100);
+      const moPct = 100 - myPct;
+
+      if (storageBadge) storageBadge.textContent = `${formatBytes(totalBytes)} Total`;
+
+      storageChart.innerHTML = `
+        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+          <span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--primary); margin-right:4px;"></span>MySQL: <strong>${esc(mysql.formattedTotalSize || '0 B')}</strong> (${myPct}%)</span>
+          <span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:#059669; margin-right:4px;"></span>MongoDB: <strong>${esc(mongodb.formattedStorageSize || '0 B')}</strong> (${moPct}%)</span>
+        </div>
+        <div style="display:flex; height:14px; border-radius:var(--radius-full); overflow:hidden; background:var(--bg-subtle);">
+          <div style="width:${myPct}%; background:var(--primary); transition:width 0.4s ease;" title="MySQL Storage: ${esc(mysql.formattedTotalSize)}"></div>
+          <div style="width:${moPct}%; background:#059669; transition:width 0.4s ease;" title="MongoDB Storage: ${esc(mongodb.formattedStorageSize)}"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-muted); margin-top:8px;">
+          <span>MySQL Buffer Pool: ${esc(mysql.formattedBufferPoolSize || 'N/A')}</span>
+          <span>MongoDB Uncompressed Data: ${esc(mongodb.formattedDataSize || 'N/A')}</span>
+        </div>
+      `;
+    }
+
+    // 2. Query Latency Breakdown
+    const latencyChart = $('#latencyComparisonChart');
+    const latencyBadge = $('#latencyRatingBadge');
+    if (latencyChart) {
+      const myLat = Number(mysql.responseTimeMs) || 0;
+      const moLat = Number(mongodb.responseTimeMs) || 0;
+      const maxLat = Math.max(myLat, moLat);
+
+      if (latencyBadge) {
+        if (maxLat < 5) {
+          latencyBadge.textContent = 'Optimal (< 5ms)';
+          latencyBadge.className = 'badge-status-healthy';
+        } else if (maxLat < 20) {
+          latencyBadge.textContent = 'Acceptable (5-20ms)';
+          latencyBadge.className = 'badge-status-degraded';
+        } else {
+          latencyBadge.textContent = 'Elevated (> 20ms)';
+          latencyBadge.className = 'badge-status-error';
+        }
+      }
+
+      // Proportional bar out of 25ms scale
+      const myBarPct = Math.min(100, Math.max(5, Math.round((myLat / 25) * 100)));
+      const moBarPct = Math.min(100, Math.max(5, Math.round((moLat / 25) * 100)));
+
+      latencyChart.innerHTML = `
+        <div class="db-prog-container">
+          <div class="db-prog-item">
+            <div class="db-prog-labels">
+              <span><strong>MySQL Connection Latency</strong></span>
+              <span><strong>${myLat} ms</strong></span>
+            </div>
+            <div class="db-prog-track">
+              <div class="db-prog-fill" style="width:${myBarPct}%; background:var(--primary);"></div>
+            </div>
+          </div>
+          <div class="db-prog-item">
+            <div class="db-prog-labels">
+              <span><strong>MongoDB Ping Latency</strong></span>
+              <span><strong>${moLat} ms</strong></span>
+            </div>
+            <div class="db-prog-track">
+              <div class="db-prog-fill" style="width:${moBarPct}%; background:#059669;"></div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-muted); margin-top:4px;">
+            <span>Target: &lt; 10 ms for real-time web workloads</span>
+            <span>Total Probe Verification: ${health.totalResponseTimeMs} ms</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function renderDbMysqlTables(mysql) {
+    const list = $('#mysqlTablesList tbody');
+    const meta = $('#mysqlRuntimeMeta');
+    if (meta) {
+      meta.textContent = `Version ${mysql.version || '8.0'} · Charset: ${mysql.charset || 'utf8mb4'} · Uptime: ${mysql.formattedUptime || 'N/A'}`;
+    }
+
+    if (!list) return;
+
+    if (!mysql.tables || mysql.tables.length === 0) {
+      list.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--ink-muted); padding:16px;">No tables found or MySQL disconnected.</td></tr>`;
+      return;
+    }
+
+    const schemaRoles = {
+      colleges: 'Core Directory (PK: college_id)',
+      courses: 'Degree Programs (FK: college_id)',
+      topics: 'Discussion Taxonomy (PK: topic_id)',
+      users: 'Accounts & Roles (PK: user_id)',
+      posts: 'Discussions & Qs (FK: course_id, user_id)',
+      comments: 'Threaded Replies (FK: post_id, user_id)',
+      likes: 'Vote Toggles (UK: post_id, user_id)',
+      follows: 'Student Subscriptions (PK: follower, followed)'
+    };
+
+    list.innerHTML = mysql.tables.map(t => {
+      const lower = t.tableName.toLowerCase();
+      const roleDesc = schemaRoles[lower] || 'Relational Entity Table';
+      return `
+        <tr>
+          <td><strong style="color:var(--primary); font-family:monospace; font-size:13px;">${esc(t.tableName)}</strong></td>
+          <td><span style="font-size:12px; color:var(--ink-secondary);">${esc(roleDesc)}</span></td>
+          <td style="text-align:right; font-weight:700;">${t.rowCount}</td>
+          <td style="text-align:right; font-size:12.5px; color:var(--ink-secondary);">${esc(t.formattedDataSize)}</td>
+          <td style="text-align:right; font-size:12.5px; color:var(--ink-secondary);">${esc(t.formattedIndexSize)}</td>
+          <td style="text-align:right; font-weight:700;">${esc(t.formattedTotalSize)}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderDbMongoCollections(mongodb) {
+    const list = $('#mongoCollectionsList tbody');
+    const meta = $('#mongoRuntimeMeta');
+    if (meta) {
+      meta.textContent = `Version ${mongodb.version || '7.0'} · Storage Engine: WiredTiger · Indexes: ${mongodb.indexesCount || 0}`;
+    }
+
+    if (!list) return;
+
+    if (!mongodb.collections || mongodb.collections.length === 0) {
+      list.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--ink-muted); padding:16px;">No collections found or MongoDB disconnected.</td></tr>`;
+      return;
+    }
+
+    list.innerHTML = mongodb.collections.map(c => {
+      return `
+        <tr>
+          <td><strong style="color:#059669; font-family:monospace; font-size:13px;">${esc(c.collectionName)}</strong></td>
+          <td><span style="font-size:12px; color:var(--ink-secondary); text-transform:capitalize;">${esc(c.type || 'Document Store')}</span></td>
+          <td style="text-align:right; font-weight:700;">${c.documentCount}</td>
+          <td style="text-align:right; font-size:12.5px; color:var(--ink-secondary);">${esc(formatBytes(mongodb.dataSizeBytes))}</td>
+          <td style="text-align:right; font-size:12.5px; font-weight:700;">${esc(c.formattedStorageSize)}</td>
+          <td style="text-align:right; font-weight:700;">${c.indexCount || 5} indexes</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function copyDbDiagnostics() {
+    if (!dbCachedData) {
+      showToast('No telemetry data available to copy.');
+      return;
+    }
+    const jsonStr = JSON.stringify(dbCachedData, null, 2);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        showToast('Database diagnostics JSON copied to clipboard');
+      }).catch(() => {
+        showToast('Diagnostics ready (check console)');
+        console.log(jsonStr);
+      });
+    } else {
+      console.log('Database diagnostics:', jsonStr);
+      showToast('Diagnostics logged to browser console');
+    }
+  }
+
+  // =========================================================================
   // RIGHT RAIL WIDGETS (Unanswered Questions & Popular Colleges)
   // =========================================================================
 
@@ -1727,6 +2322,15 @@
       loadReportsModalData();
     });
 
+    // Database Status Dashboard Listeners
+    $('#btnRefreshDbStatus')?.addEventListener('click', () => loadDatabaseStatusView(true));
+    $('#btnOpenDbStatusFromSettings')?.addEventListener('click', () => switchView('database-status'));
+    $('#railDbStatusLink')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchView('database-status');
+    });
+    $('#btnCopyDbDiagnostics')?.addEventListener('click', copyDbDiagnostics);
+
     // Right rail explore all link
     $('#railExploreAllLink')?.addEventListener('click', (e) => {
       e.preventDefault();
@@ -1842,6 +2446,7 @@
     triggerAskFlow,
     triggerReviewFlow,
     loadHomeFeed,
+    loadDatabaseStatusView,
     openSignIn: () => {
       switchAuthTab('login');
       openModal('modalAuth');

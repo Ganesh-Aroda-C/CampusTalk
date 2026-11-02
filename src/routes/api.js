@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { authenticateToken, optionalAuth, rateLimit } = require('../middleware/auth');
+const { authenticateToken, optionalAuth, requireRole, rateLimit } = require('../middleware/auth');
 const authCtrl = require('../controllers/authController');
 const postCtrl = require('../controllers/postController');
 const commentCtrl = require('../controllers/commentController');
@@ -9,6 +9,7 @@ const likeCtrl = require('../controllers/likeController');
 const discoveryCtrl = require('../controllers/discoveryController');
 const reviewCtrl = require('../controllers/reviewController');
 const reportCtrl = require('../controllers/reportController');
+const dbHealthCtrl = require('../controllers/databaseHealthController');
 const { getDatabaseStatus, getSqlPool } = require('../config/db');
 
 // Health check
@@ -71,5 +72,10 @@ router.get('/reports/average-ratings', reportCtrl.getAverageRatingsReport);
 router.get('/reports/reviews-by-category', reportCtrl.getReviewsByCategoryReport);
 router.get('/reports/monthly-activity', reportCtrl.getMonthlyActivityReport);
 router.get('/reports/export/:type', reportCtrl.exportReportCsv);
+
+// Database Health & Statistics Dashboard (Admin Only)
+router.get('/admin/database/health', authenticateToken, requireRole('admin'), dbHealthCtrl.getOverallHealth);
+router.get('/admin/database/mysql', authenticateToken, requireRole('admin'), dbHealthCtrl.getMysqlStatistics);
+router.get('/admin/database/mongodb', authenticateToken, requireRole('admin'), dbHealthCtrl.getMongoDbStatistics);
 
 module.exports = router;

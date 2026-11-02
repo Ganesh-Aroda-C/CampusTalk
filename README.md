@@ -88,10 +88,11 @@ The interface follows clean UX principles inspired by modern social platforms (I
 +------------------+--------------------------------------+-------------------+
 ```
 
-* **Desktop Navigation (Left Sidebar):** Consistent access to Home, Explore Colleges, Discussions, Reviews, Ask a Question (+), Notifications, Profile, and Settings.
+* **Desktop Navigation (Left Sidebar):** Consistent access to Home, Explore Colleges, Discussions, Reviews, Ask a Question (+), Notifications, Profile, and Settings (plus an authenticated **Database Status** section for Administrators).
 * **Mobile-First Experience:** Compact top bar with logo and notifications, paired with an ergonomic bottom navigation bar (Home, Explore, Ask [+], Reviews, Profile).
 * **Instant Global Search:** Real-time dropdown returning matched Colleges, Courses, Discussions, and Reviews as you type.
 * **Dedicated College Detail Page:** Structured tabs for Discussions, Student Reviews, Courses Offered, and Institutional Overview.
+* **Database Health & Statistics Dashboard:** Live, non-simulated operational dashboard demonstrating real-time health, probe latencies, table catalog allocations, and document storage for MySQL 8.0 and MongoDB 7.0.
 * **Unobtrusive Evaluator Reports:** Access all 7 SQL & MongoDB analytical reports and CSV downloads via **Settings &rarr; "Launch DBMS Lab Reports"** or from the right rail footer.
 
 ---
@@ -134,7 +135,16 @@ The interface follows clean UX principles inspired by modern social platforms (I
 * Accessible interactive visual bar graphs.
 * Direct **CSV Export** for each report.
 
-### F. Accessibility (WCAG 2.2 AA)
+### F. Database Health & Operational Statistics Dashboard (Admin)
+* Dedicated administrative telemetry dashboard querying real-time database engine states:
+  * **Overall Database Health:** Live aggregated status (`healthy`, `degraded`, `unhealthy`), probe latencies (ms), and auto-refresh countdown (30s).
+  * **MySQL 8.0 Telemetry:** Exact row counts across all 8 tables, `information_schema` data & index sizing, active client threads (`Threads_connected`), total queries (`Questions`), buffer pool allocation, and server uptime.
+  * **MongoDB 7.0+ Telemetry:** Collection documents (`countDocuments`), WiredTiger storage allocations (`dbStats`), uncompressed data size, compound indexes count, and review category aggregation.
+  * **Architectural Comparison Matrix:** Side-by-side comparison of relational vs document store telemetry.
+  * **Visual Proportional Charts:** Visual record distribution across MySQL tables, review category breakdown, storage comparison bar, and round-trip query latency meters.
+  * **Strict Role-Based Security:** Endpoints protected by JWT authentication and admin authorization middleware (`requireRole('admin')`).
+
+### G. Accessibility (WCAG 2.2 AA)
 * Accessible dialogs with focus trapping, restore-focus on close, and `Escape` key listeners.
 * Screen-reader friendly live status notifications (`role="status"`, `aria-live="polite"`).
 * High-contrast styling with visible focus outlines (`outline: 2px solid #4f46e5`).

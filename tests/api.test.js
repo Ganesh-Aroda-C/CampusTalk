@@ -332,3 +332,80 @@ test('9. Global Search, Notifications & Filter Endpoints', async () => {
   const userRevs = await userRevRes.json();
   assert.ok(Array.isArray(userRevs.reviews));
 });
+
+test('10. Admin Database Health & Operational Statistics Dashboard APIs', async () => {
+  // 1. Unauthenticated access rejected with 401
+  const unauthRes = await fetch(`${baseUrl}/api/admin/database/health`);
+  assert.equal(unauthRes.status, 401);
+
+  // 2. Non-admin student access rejected with 403
+  const forbiddenRes = await fetch(`${baseUrl}/api/admin/database/health`, {
+    headers: { 'Authorization': `Bearer ${testToken}` }
+  });
+  assert.equal(forbiddenRes.status, 403);
+
+  // 3. Authenticate as Administrator
+  const adminLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: 'admin.demo@campustalk.local',
+      password: 'password123'
+    })
+  });
+  assert.equal(adminLoginRes.status, 200);
+  const adminLoginData = await adminLoginRes.json();
+  assert.ok(adminLoginData.token);
+  assert.equal(adminLoginData.user.role, 'admin');
+  const adminToken = adminLoginData.token;
+
+  // 4. Overall Database Health (GET /api/admin/database/health)
+  const healthRes = await fetch(`${baseUrl}/api/admin/database/health`, {
+    headers: { 'Authorization': `Bearer ${adminToken}` }
+  });
+  assert.equal(healthRes.status, 200);
+  const healthData = await healthRes.json();
+  assert.equal(healthData.overallStatus, 'healthy');
+  assert.equal(healthData.mysql.status, 'connected');
+  assert.equal(healthData.mysql.database, 'campustalk');
+  assert.ok(typeof healthData.mysql.responseTimeMs === 'number');
+  assert.equal(healthData.mongodb.status, 'connected');
+  assert.equal(healthData.mongodb.database, 'campustalk');
+  assert.ok(typeof healthData.mongodb.responseTimeMs === 'number');
+  assert.ok(healthData.timestamp);
+
+  // 5. MySQL Statistics (GET /api/admin/database/mysql)
+  const mysqlRes = await fetch(`${baseUrl}/api/admin/database/mysql`, {
+    headers: { 'Authorization': `Bearer ${adminToken}` }
+  });
+  assert.equal(mysqlRes.status, 200);
+  const mysqlData = await mysqlRes.json();
+  assert.equal(mysqlData.status, 'connected');
+  assert.equal(mysqlData.database, 'campustalk');
+  assert.ok(mysqlData.version);
+  assert.ok(mysqlData.tableCount >= 8);
+  assert.ok(mysqlData.totalRecords >= 40);
+  assert.ok(mysqlData.totalSizeBytes > 0);
+  assert.ok(Array.isArray(mysqlData.tables));
+  assert.ok(mysqlData.tables.some(t => t.tableName.toLowerCase() === 'colleges'));
+  assert.ok(mysqlData.tables.some(t => t.tableName.toLowerCase() === 'posts'));
+  assert.ok(mysqlData.tables.some(t => t.tableName.toLowerCase() === 'users'));
+  assert.ok(mysqlData.activeConnections >= 1);
+  assert.ok(typeof mysqlData.formattedTotalSize === 'string');
+
+  // 6. MongoDB Statistics (GET /api/admin/database/mongodb)
+  const mongoRes = await fetch(`${baseUrl}/api/admin/database/mongodb`, {
+    headers: { 'Authorization': `Bearer ${adminToken}` }
+  });
+  assert.equal(mongoRes.status, 200);
+  const mongoData = await mongoRes.json();
+  assert.equal(mongoData.status, 'connected');
+  assert.equal(mongoData.database, 'campustalk');
+  assert.ok(mongoData.version);
+  assert.ok(mongoData.collectionCount >= 1);
+  assert.ok(mongoData.totalDocuments >= 5);
+  assert.ok(mongoData.storageSizeBytes > 0);
+  assert.ok(Array.isArray(mongoData.collections));
+  assert.ok(mongoData.collections.some(c => c.collectionName === 'student_reviews'));
+  assert.ok(typeof mongoData.formattedStorageSize === 'string');
+});
